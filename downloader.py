@@ -57,6 +57,7 @@ class DataBase:
     def has_data(self, md5_value: str) -> bool:
         """通过判断MD5值，确定视频是否存在"""
         row = self.session.query(self.tb_data).filter(self.tb_data.md5 == md5_value).first()
+        print("row: ", row, type(row))
         result = True if row else False
 
         return result
@@ -64,8 +65,7 @@ class DataBase:
     def has_url(self, url: str) -> bool:
         """视频链接是否存在"""
         row = self.session.query(self.tb_data).filter(self.tb_data.url == url).first()
-        result = True if row else False
-        return result
+        return True if row else False
 
     def commit(self):
         self.session.commit()
@@ -79,6 +79,7 @@ class DataBase:
 
 class Parser:
     """kaidouParser"""
+
     def __init__(self, base_url: str, headers: dict):
         self.base_url = base_url
         self.headers = headers
@@ -95,7 +96,7 @@ class Parser:
         url = response.url
         headers = response.headers
 
-        return code, response.url, headers, response
+        return code, url, headers, response
 
     @staticmethod
     def get_hash(content: bytes) -> str:
@@ -127,17 +128,21 @@ def spider(base_url: str, headers: dict, save_dir: str, total: int):
 
     parser = Parser(base_url, headers)
 
-    counter, existed_counter = 1, 1
+    counter, existed_counter = (1, 1)
+
     while counter <= total:
         url = parser.gen_url()
         start_date = func.now()
         code, r_url, r_headers, resp = parser.get_html(url)
 
-        if code == 200 and url and db.has_url(url):
+        # 如果得到正确的响应并且获取到正确的URL，就进行下一步验证
+        # 注释掉的条件  and db.has_url(url)
+
+        try:
             content = resp.content
             md5_v = parser.get_hash(content)
 
-            if md5_v and not db.has_data(md5_v):
+            if not db.has_data(md5_v):
                 # 保存文件
                 file_path = f"{save_dir}/{next_id}.mp4"
                 parser.save(file_path, content)
@@ -161,20 +166,19 @@ def spider(base_url: str, headers: dict, save_dir: str, total: int):
                 # 进度
                 percent = round(counter / total * 100, 1) if counter < total else 100.0
                 info = f"[ NO.{counter} | {percent}% | file: {next_id}.m4 | saved. ]"
-
-                counter += 1
                 next_id += 1
 
             else:
-                info = f"[ NO.{existed_counter} | MD5: {md5_v} | video existed. ]"
+                info = f"[ NO.{counter} | MD5: {md5_v} | video existed. ]"
                 existed_counter += 1
-        else:
-            info = f"[ NO.{existed_counter} | URL: existed. ]"
-            existed_counter += 1
 
-        print(info)
+        except Exception as err:
+            err_info = f"[ NO.{counter}, failed. ]"
+            print(err_info)
 
-        sleep(0.1)
+        counter += 1
+
+        sleep(0.05)
 
 
 def main():
