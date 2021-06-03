@@ -195,13 +195,15 @@ def main():
     # TODO: [2020-06-20] 加上异步、并发和队列
     save_dir = "videos"
     # base_url = "http://www.kuaidoushe.com/video.php"
-    base_url2 = "https://tvv.tw/xjj/kuaishou/video.php?_t=0.9992042111452304"
+    # base_url2 = "https://tvv.tw/xjj/kuaishou/video.php"
+    base_url3 = "https://tvv.tw/xjj//get/get0.php"
+
     headers = {'content-type': 'application/json',
                'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:22.0) Gecko/20100101 Firefox/22.0'}
 
     print("[ Downloader: start ]")
     check_dir(save_dir)
-    spider(base_url2, headers, save_dir, 1000)
+    spider(base_url3, headers, save_dir, 1000)
     print("[ Downloader: done ]")
 
 
