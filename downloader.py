@@ -130,6 +130,7 @@ def spider(base_url: str, headers: dict, save_dir: str, total: int):
 
     counter, existed_counter = (1, 1)
 
+    info = ""
     while counter <= total:
         url = parser.gen_url()
         start_date = func.now()
@@ -173,11 +174,10 @@ def spider(base_url: str, headers: dict, save_dir: str, total: int):
                 existed_counter += 1
 
         except Exception as err:
-            err_info = f"[ NO.{counter}, failed. ]"
-            print(err_info)
+            info = f"[ NO.{counter}, {err}. ]"
 
+        print(info)
         counter += 1
-
         sleep(0.05)
 
 
