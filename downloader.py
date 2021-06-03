@@ -8,11 +8,10 @@
 @CreatedOn  : 2020/6/15 0:39
 --------------------------------------
 """
+from hashlib import md5
 from os import stat, makedirs
 from os.path import exists
-from hashlib import md5
-from random import uniform, random
-from time import sleep
+from random import random
 
 import requests
 from sqlalchemy import func
@@ -197,7 +196,7 @@ def main():
     save_dir = "videos"
     # base_url = "http://www.kuaidoushe.com/video.php"
     # base_url2 = "https://tvv.tw/xjj/kuaishou/video.php"
-    base_url3 = ""
+    base_url3 = "http://wmsp.cc/video.php?"  # 这个反爬虫
 
     headers = {'content-type': 'application/json',
                'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:22.0) Gecko/20100101 Firefox/22.0'}
