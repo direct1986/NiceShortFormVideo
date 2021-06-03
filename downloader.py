@@ -200,7 +200,7 @@ def main():
 
     print("[ Downloader: start ]")
     check_dir(save_dir)
-    spider(base_url, headers, save_dir, 100)
+    spider(base_url, headers, save_dir, 5000)
     print("[ Downloader: done ]")
 
 
