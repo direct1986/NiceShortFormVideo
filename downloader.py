@@ -193,10 +193,11 @@ def check_dir(dir_path):
 
 def main():
     # TODO: [2020-06-20] 加上异步、并发和队列
+    # TODO: [2021-06-04] 自动创建数据库，一键小白式运行
     save_dir = "videos"
     # base_url = "http://www.kuaidoushe.com/video.php"
     # base_url2 = "https://tvv.tw/xjj/kuaishou/video.php"
-    base_url3 = "https://tvv.tw/xjj//get/get0.php"
+    base_url3 = ""
 
     headers = {'content-type': 'application/json',
                'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:22.0) Gecko/20100101 Firefox/22.0'}
