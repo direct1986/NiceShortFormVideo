@@ -58,10 +58,8 @@ class DataBase:
     def has_data(self, md5_value: str) -> bool:
         """通过判断MD5值，确定视频是否存在"""
         row = self.session.query(self.tb_data).filter(self.tb_data.md5 == md5_value).first()
-        print("row: ", row, type(row))
-        result = True if row else False
 
-        return result
+        return True if row else False
 
     def has_url(self, url: str) -> bool:
         """视频链接是否存在"""
