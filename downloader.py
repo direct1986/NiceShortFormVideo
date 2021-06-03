@@ -8,7 +8,8 @@
 @CreatedOn  : 2020/6/15 0:39
 --------------------------------------
 """
-from os import stat
+from os import stat, makedirs
+from os.path import exists
 from hashlib import md5
 from random import uniform, random
 from time import sleep
@@ -181,6 +182,15 @@ def spider(base_url: str, headers: dict, save_dir: str, total: int):
         sleep(0.05)
 
 
+def check_dir(dir_path):
+    """
+    检测是否存在文件夹，不存在则创建
+    """
+    if not exists(dir_path):
+        makedirs(dir_path)
+        print(f"{dir_path}, created.")
+
+
 def main():
     # TODO: [2020-06-20] 加上异步、并发和队列
     save_dir = "videos"
@@ -189,6 +199,7 @@ def main():
                'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:22.0) Gecko/20100101 Firefox/22.0'}
 
     print("[ Downloader: start ]")
+    check_dir(save_dir)
     spider(base_url, headers, save_dir, 10)
     print("[ Downloader: done ]")
 
