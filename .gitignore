@@ -172,3 +172,6 @@ speed-measure-plugin*.json
 **.ini
 **.txt
 **.out
+
+# kuaidou
+videos/
