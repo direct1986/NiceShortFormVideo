@@ -152,6 +152,9 @@ def spider(base_url: str, headers: dict, save_dir: str, total: int):
                 r_size = float(r_headers.get("content-length"))
                 size = parser.get_size(r_size)
 
+                if size == 0:
+                    continue
+
                 data = {
                     "id": next_id,
                     "url": r_url,
@@ -177,7 +180,6 @@ def spider(base_url: str, headers: dict, save_dir: str, total: int):
 
         print(info)
         counter += 1
-        sleep(0.05)
 
 
 def check_dir(dir_path):
@@ -198,7 +200,7 @@ def main():
 
     print("[ Downloader: start ]")
     check_dir(save_dir)
-    spider(base_url, headers, save_dir, 10)
+    spider(base_url, headers, save_dir, 100)
     print("[ Downloader: done ]")
 
 
