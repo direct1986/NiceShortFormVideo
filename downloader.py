@@ -15,7 +15,7 @@ from time import sleep
 
 from sqlalchemy import func
 
-from utils import Parser, DataBase, Const, log
+from utils import Parser, DataBase, Const, log, create_db
 
 
 def spider(base_url: str, save_dir: str, headers, agents, total: int):
@@ -95,6 +95,10 @@ def main():
     # TODO: [2021-06-04] 自动创建数据库，一键小白式运行
 
     # 创建数据库
+    try:
+        create_db()
+    except Exception as err:
+        log.error(err)
 
     save_dir = "videos"
     # base_url = "http://www.kuaidoushe.com/video.php"
