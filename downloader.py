@@ -30,13 +30,17 @@ def spider(base_url: str, save_dir: str, headers, agents, total: int):
     while counter <= total:
         url = parser.gen_url()
         start_date = func.now()
-        code, r_url, r_headers, resp = parser.get_html(url)
-
-        # 如果得到正确的响应并且获取到正确的URL，就进行下一步验证
-        # 注释掉的条件  and db.has_url(url)
-
         try:
+            code, r_url, r_headers, resp = parser.get_html(url)
+            # 如果得到正确的响应并且获取到正确的URL，就进行下一步验证
+            # 注释掉的条件  and db.has_url(url)
+
             content = resp.content
+            # 针对 base_url5 = "http://dou.plus/get/get1.php"的特点进行的优化
+            if len(content) < 5000:
+                code, r_url, r_headers, resp = parser.get_html(content.decode())
+                content = resp.content
+
             md5_v = parser.get_hash(content)
 
             if not db.has_data(md5_v):
@@ -78,7 +82,8 @@ def spider(base_url: str, save_dir: str, headers, agents, total: int):
         print(info)
         counter += 1
 
-        sleep(uniform(2, 3))
+        # sleep(uniform(2, 4))
+        sleep(uniform(0, 2))
 
 
 def check_dir(dir_path):
@@ -101,16 +106,18 @@ def main():
         log.error(err)
 
     save_dir = "videos"
-    # base_url = "http://www.kuaidoushe.com/video.php"
-    # base_url2 = "https://tvv.tw/xjj/kuaishou/video.php"
-    base_url3 = "http://wmsp.cc/video.php?"  # 这个反爬虫，设置(1, 1.5)秒的随机sleep可解除
+    base_url1 = "http://www.kuaidoushe.com/video.php"
+    base_url2 = "https://tvv.tw/xjj/kuaishou/video.php"
+    base_url3 = "http://wmsp.cc/video.php"  # 这个反爬虫，设置(2, 4)秒的随机sleep可解除
+    base_url4 = "https://xjj.349457.xyz/video.php"
+    base_url5 = "http://dou.plus/get/get1.php"
 
     headers = Const.headers.value
     agents = Const.all_agents.value
 
     log.info("Downloader: start")
     check_dir(save_dir)
-    spider(base_url3, save_dir, headers, agents, 1000)
+    spider(base_url5, save_dir, headers, agents, 1000)
     log.info("Downloader: done")
 
 
