@@ -78,7 +78,7 @@ def spider(base_url: str, save_dir: str, headers, agents, total: int):
         print(info)
         counter += 1
 
-        sleep(uniform(1, 2))
+        sleep(uniform(2, 3))
 
 
 def check_dir(dir_path):
