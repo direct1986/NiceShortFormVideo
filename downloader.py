@@ -78,7 +78,7 @@ def spider(base_url: str, save_dir: str, headers, agents, total: int):
         print(info)
         counter += 1
 
-        sleep(uniform(0, 0.8))
+        sleep(uniform(1, 2))
 
 
 def check_dir(dir_path):
@@ -103,7 +103,7 @@ def main():
     save_dir = "videos"
     # base_url = "http://www.kuaidoushe.com/video.php"
     # base_url2 = "https://tvv.tw/xjj/kuaishou/video.php"
-    base_url3 = "http://wmsp.cc/video.php?"  # 这个反爬虫
+    base_url3 = "http://wmsp.cc/video.php?"  # 这个反爬虫，设置(1, 1.5)秒的随机sleep可解除
 
     headers = Const.headers.value
     agents = Const.all_agents.value
