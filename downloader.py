@@ -8,123 +8,21 @@
 @CreatedOn  : 2020/6/15 0:39
 --------------------------------------
 """
-from hashlib import md5
-from os import stat, makedirs
+from os import makedirs
 from os.path import exists
-from random import random
+from random import uniform
+from time import sleep
 
-import requests
 from sqlalchemy import func
-from sqlalchemy.orm import sessionmaker
 
-from models import engine, Videos
-
-
-class DataBase:
-    def __init__(self):
-        # 统一使用同一个变量，便于维护
-        self.tb_data = Videos
-        self.tv_data_keys = ["id", "url", "md5", "size", "startOn", "endOn"]
-        sess = sessionmaker(bind=engine)
-        self.session = sess()
-
-    def get_next_id(self) -> int:
-        """获取最大值"""
-        row = self.session.query(self.tb_data).order_by(self.tb_data.id.desc()).first()
-        next_id = (row.id + 1) if row else 1
-
-        return next_id
-
-    def insert(self, **kwargs):
-        """插入数据"""
-        tb_data = self.tb_data()
-
-        for k in self.tv_data_keys:
-            if k in kwargs:
-                v = kwargs.get(k)
-                setattr(tb_data, k, v)
-
-        self.session.add(tb_data)
-        self.commit()
-
-    def update(self, row_id: int, size: float):
-        """更新数据"""
-        row = self.session.query(self.tb_data).filter(self.tb_data.id == row_id).first()
-        row.endOn = func.now()
-        row.size = size
-        self.commit()
-
-    def has_data(self, md5_value: str) -> bool:
-        """通过判断MD5值，确定视频是否存在"""
-        row = self.session.query(self.tb_data).filter(self.tb_data.md5 == md5_value).first()
-
-        return True if row else False
-
-    def has_url(self, url: str) -> bool:
-        """视频链接是否存在"""
-        row = self.session.query(self.tb_data).filter(self.tb_data.url == url).first()
-        return True if row else False
-
-    def commit(self):
-        self.session.commit()
-
-    def close(self):
-        self.session.close()
-
-    def __del__(self):
-        self.close()
+from utils import Parser, DataBase, Const, log
 
 
-class Parser:
-    """kaidouParser"""
-
-    def __init__(self, base_url: str, headers: dict):
-        self.base_url = base_url
-        self.headers = headers
-
-    def gen_url(self):
-        t = random()
-        url = f"{self.base_url}?_t={t}"
-
-        return url
-
-    def get_html(self, url: str) -> tuple:
-        response = requests.request("GET", url, headers=self.headers)
-        code = response.status_code
-        url = response.url
-        headers = response.headers
-
-        return code, url, headers, response
-
-    @staticmethod
-    def get_hash(content: bytes) -> str:
-        result = md5(content).hexdigest() if content else ""
-
-        return result
-
-    @staticmethod
-    def get_size(arg: str or int or float) -> float:
-
-        if isinstance(arg, str):
-            kb = stat(arg).st_size
-        else:
-            kb = arg
-
-        mb = round(kb / 1024 / 1024, 1)
-
-        return mb
-
-    @staticmethod
-    def save(path, content):
-        with open(path, "wb") as v:
-            v.write(content)
-
-
-def spider(base_url: str, headers: dict, save_dir: str, total: int):
+def spider(base_url: str, save_dir: str, headers, agents, total: int):
     db = DataBase()
     next_id = db.get_next_id()
 
-    parser = Parser(base_url, headers)
+    parser = Parser(base_url, headers, agents)
 
     counter, existed_counter = (1, 1)
 
@@ -180,6 +78,8 @@ def spider(base_url: str, headers: dict, save_dir: str, total: int):
         print(info)
         counter += 1
 
+        sleep(uniform(0, 0.8))
+
 
 def check_dir(dir_path):
     """
@@ -193,18 +93,21 @@ def check_dir(dir_path):
 def main():
     # TODO: [2020-06-20] 加上异步、并发和队列
     # TODO: [2021-06-04] 自动创建数据库，一键小白式运行
+
+    # 创建数据库
+
     save_dir = "videos"
     # base_url = "http://www.kuaidoushe.com/video.php"
     # base_url2 = "https://tvv.tw/xjj/kuaishou/video.php"
     base_url3 = "http://wmsp.cc/video.php?"  # 这个反爬虫
 
-    headers = {'content-type': 'application/json',
-               'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:22.0) Gecko/20100101 Firefox/22.0'}
+    headers = Const.headers.value
+    agents = Const.all_agents.value
 
-    print("[ Downloader: start ]")
+    log.info("Downloader: start")
     check_dir(save_dir)
-    spider(base_url3, headers, save_dir, 1000)
-    print("[ Downloader: done ]")
+    spider(base_url3, save_dir, headers, agents, 1000)
+    log.info("Downloader: done")
 
 
 if __name__ == '__main__':

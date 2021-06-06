@@ -12,8 +12,9 @@ import sqlalchemy
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, DateTime, func, Float
 
-DB_URI = "sqlite:///kuaidou.db"
-engine = sqlalchemy.create_engine(DB_URI)
+from settings import cfg
+
+engine = sqlalchemy.create_engine(cfg.db_uri)
 Base = declarative_base()
 
 
@@ -37,9 +38,3 @@ class Videos(BaseModel):
 
 def create_db():
     Base.metadata.create_all(engine)
-
-
-if __name__ == '__main__':
-    print("[ Database: creating ... ]")
-    create_db()
-    print("[ Database: created. ]")
