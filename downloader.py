@@ -40,6 +40,8 @@ def spider(base_url: str, save_dir: str, headers, agents, total: int):
             if len(content) < 5000:
                 code, r_url, r_headers, resp = parser.get_html(content.decode())
                 content = resp.content
+                if len(content) < 5000:
+                    continue
 
             md5_v = parser.get_hash(content)
 
@@ -110,7 +112,7 @@ def main():
     base_url2 = "https://tvv.tw/xjj/kuaishou/video.php"
     base_url3 = "http://wmsp.cc/video.php"  # 这个反爬虫，设置(2, 4)秒的随机sleep可解除
     base_url4 = "https://xjj.349457.xyz/video.php"
-    base_url5 = "http://dou.plus/get/get1.php"
+    base_url5 = "http://dou.plus/get/get1.php"  # 这个也只能下载一些
 
     headers = Const.headers.value
     agents = Const.all_agents.value
