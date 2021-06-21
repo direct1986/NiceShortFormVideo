@@ -10,25 +10,27 @@
 """
 from os import makedirs
 from os.path import exists
-from random import uniform
+from random import uniform, choice
 from time import sleep
 
+from fake_headers import Headers
 from sqlalchemy import func
 
-from utils import Parser, DataBase, Const, log, create_db
+from utils import (
+    Parser, DataBase, Const, log, create_db, CloseableQueue, StoppableWorker, start_threads, stop_thread, cfg)
 
 
-def spider(base_url: str, save_dir: str, headers, agents, total: int):
+def spider(base_url: str, save_dir: str, total: int):
     db = DataBase()
     next_id = db.get_next_id()
 
-    parser = Parser(base_url, headers, agents)
+    parser = Parser()
 
     counter, existed_counter = (1, 1)
 
     info = ""
     while counter <= total:
-        url = parser.gen_url()
+        url = parser.gen_url(base_url)
         start_date = func.now()
         try:
             code, r_url, r_headers, resp = parser.get_html(url)
@@ -97,31 +99,81 @@ def check_dir(dir_path):
         print(f"{dir_path}, created.")
 
 
-def main():
-    # TODO: [2020-06-20] 加上异步、并发和队列
-    # TODO: [2021-06-04] 自动创建数据库，一键小白式运行
+def url_parse(url) -> str:
+    """
+        解析给定链接，返回视频链接
+    """
+    pass
 
+
+def video_download(url) -> bytes:
+    """
+        解析给定的视频链接，返回视频二进制对象
+    """
+    pass
+
+
+def video_save(video_object):
+    """
+        保存视频对象为文件
+    """
+    pass
+
+
+def main():
     # 创建数据库
     try:
         create_db()
     except Exception as err:
         log.error(err)
 
-    save_dir = "videos"
-    base_url1 = "http://www.kuaidoushe.com/video.php"
-    base_url2 = "https://tvv.tw/xjj/kuaishou/video.php"
-    base_url3 = "http://wmsp.cc/video.php"  # 这个反爬虫，设置(2, 4)秒的随机sleep可解除
-    base_url4 = "https://xjj.349457.xyz/video.php"
-    base_url5 = "http://dou.plus/get/get1.php"  # 这个也只能下载一些
+    db = DataBase()
+    save_dir = cfg.videos_dir
+    check_dir(save_dir)
 
-    headers = Const.headers.value
-    agents = Const.all_agents.value
+    parser = Parser()
+    next_id = db.get_next_id()
+
+    # 下载到第几个，已经存在的个数
+    counter, existed_counter = (1, 1)
 
     log.info("Downloader: start")
-    check_dir(save_dir)
-    spider(base_url5, save_dir, headers, agents, 1000)
+
+    # spider(base_url5, save_dir, 1000)
     log.info("Downloader: done")
+
+    url_queue = CloseableQueue()
+    video_url_queue = CloseableQueue()
+    video_obj_queue = CloseableQueue()
+    done_queue = CloseableQueue()
+
+    url_parse_threads = start_threads(3, url_parse, url_queue, video_url_queue)
+    video_download_threads = start_threads(4, video_download, video_url_queue, video_obj_queue)
+    video_save_threads = start_threads(5, video_save, video_obj_queue, done_queue)
+
+    # 下载用的基础链接
+    urls = cfg.urls
+
+    # 向下载队列中填入生成的下载链接
+    for _ in range(cfg.download_number):
+        base_url = choice(urls)
+        url_queue.put(parser.gen_url(base_url))
+
+    stop_thread(url_queue, url_parse_threads)
+    stop_thread(video_url_queue, video_download_threads)
+    stop_thread(video_obj_queue, video_save_threads)
+
+    print("完成：", done_queue.qsize())
+
+
+def demo():
+    # 新的 fake_headers用法
+    for _ in range(3):
+        headers = Headers(headers=True).generate()
+        print(headers)
+        print(type(headers))
 
 
 if __name__ == '__main__':
-    main()
+    # main()
+    demo()
