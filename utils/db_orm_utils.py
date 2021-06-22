@@ -18,7 +18,7 @@ class DataBase:
     def __init__(self):
         # 统一使用同一个变量，便于维护
         self.tb_data = Videos
-        self.tv_data_keys = ["id", "url", "md5", "size", "startOn", "endOn"]
+        self.tv_data_keys = ["id", "url", "md5", "size"]
         sess = sessionmaker(bind=engine)
         self.session = sess()
 
