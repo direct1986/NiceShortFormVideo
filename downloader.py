@@ -137,11 +137,10 @@ def main():
     # 向下载队列中填入生成的下载链接
     for _ in range(cfg.download_number):
         base_url = choice(urls)
-        url_item = (parser.gen_url(base_url), parser)
-        url_queue.put(url_item)
+        url_queue.put(parser.gen_url(base_url))
 
     stop_thread(url_queue, url_parse_threads)
-    stop_thread(video_obj_queue, video_save_threads)
+    stop_thread(video_obj_queue, video_check_threads)
     stop_thread(video_save_queue, video_save_threads)
 
     print("完成：", done_queue.qsize())
