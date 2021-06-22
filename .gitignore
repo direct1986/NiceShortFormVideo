@@ -177,3 +177,4 @@ speed-measure-plugin*.json
 videos/
 picked/
 PIPENV_VENV_IN_PROJECT/
+*.db
