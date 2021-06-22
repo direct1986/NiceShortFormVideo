@@ -73,10 +73,17 @@ def video_check(item):
     """
         检验视频对象是否满足保存要求
     """
+    global counter
     r_url, content = item
     md5_v = parser.get_hash(content)
 
     if db.has_data(md5_v):
+        # 进度
+        percent = round(counter / cfg.download_number * 100, 1) if counter < cfg.download_number else 100.0
+        info = f"[ NO.{counter} | {percent}%, existed. ]"
+        print(info)
+
+        counter += 1
         return
 
     return r_url, md5_v, content
@@ -104,7 +111,6 @@ def video_save(item):
         "size": size
     }
     db.insert(**data)
-    d = {}
 
     # 进度
     percent = round(counter / cfg.download_number * 100, 1) if counter < cfg.download_number else 100.0

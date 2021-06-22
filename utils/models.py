@@ -14,7 +14,8 @@ from sqlalchemy import Column, Integer, String, DateTime, func, Float
 
 from settings import cfg
 
-engine = sqlalchemy.create_engine(cfg.db_uri)
+# check_same_thread = False, 解决多线程报错的问题
+engine = sqlalchemy.create_engine(cfg.db_uri, connect_args={"check_same_thread": False})
 Base = declarative_base()
 
 
