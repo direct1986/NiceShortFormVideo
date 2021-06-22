@@ -56,7 +56,10 @@ class StoppableWorker(Thread):
         for item in self.in_queue:
             with self.lock:
                 result = self.func(item)
-                self.out_queue.put(result)
+
+                # 当正确返回的时候，才放到下一个
+                if result:
+                    self.out_queue.put(result)
 
 
 def start_threads(count, *args):

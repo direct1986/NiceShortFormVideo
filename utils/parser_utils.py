@@ -41,12 +41,17 @@ class Parser:
         return result
 
     @staticmethod
-    def get_size(arg: str or int or float) -> float:
+    def get_size(arg: str or int or float or bytes) -> float:
         """
         将给定的表示大小的值，转换为小数，单位转换为 MB
         """
+        # 获取路径指向的文件的大小
         if isinstance(arg, str):
             kb = stat(arg).st_size
+
+        # 获取传入的二进制对象的大小
+        elif isinstance(arg, bytes):
+            kb = len(arg) / 1024
         else:
             kb = arg
 

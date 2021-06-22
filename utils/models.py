@@ -32,8 +32,6 @@ class Videos(BaseModel):
     md5 = Column(String(32), index=True, comment='MD5值')
     size = Column(Float(1), comment='文件大小，MB')
     url = Column(String, index=True, comment='videos 地址')
-    startOn = Column(DateTime, server_default=func.now(), comment='开始下载时间')
-    endOn = Column(DateTime, comment='下载结束时间')
 
 
 def create_db():
