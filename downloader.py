@@ -74,6 +74,8 @@ def video_check(item):
         检验视频对象是否满足保存要求
     """
     global counter
+    global existed_counter
+
     r_url, content = item
     md5_v = parser.get_hash(content)
 
@@ -83,6 +85,7 @@ def video_check(item):
         info = f"[ NO.{counter} | {percent}%, existed. ]"
         print(info)
 
+        existed_counter += 1
         counter += 1
         return
 
