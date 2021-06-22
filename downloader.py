@@ -28,11 +28,15 @@ except Exception as err:
 db = DataBase()
 parser = Parser()
 
+hash_value = db.fetch_all_hash_value()
+print(hash_value)
+# raise ValueError
+
 # 保存视频文件的目录
 save_dir = cfg.videos_dir
 
 # 下载到第几个，已经存在的个数
-counter, existed_counter = (1, 0)
+counter, existed_counter, bad = (1, 0, 0)
 
 # 本轮下载，视频文件保存时候的开始序号，用于保存用
 next_id = db.get_next_id()
@@ -69,7 +73,17 @@ def url_parse(url):
             result = (r_url, content)
 
     except MissingSchema:
-        pass
+        # 进度
+        global counter
+        global existed_counter
+        global bad
+
+        percent = round(counter / cfg.download_number * 100, 1) if counter < cfg.download_number else 100.0
+        info = f"[ NO.{counter} | {percent}%, bad. ]"
+        print(info)
+
+        counter += 1
+        bad += 1
 
     return result
 

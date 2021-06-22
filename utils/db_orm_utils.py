@@ -59,6 +59,11 @@ class DataBase:
         row = self.session.query(self.tb_data).filter(self.tb_data.url == url).first()
         return True if row else False
 
+    def fetch_all_hash_value(self):
+        rows = self.session.query(self.tb_data).with_entities(self.tb_data.md5).all()
+
+        return [x[0] for x in rows] or rows
+
     def commit(self):
         self.session.commit()
 
