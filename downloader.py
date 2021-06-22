@@ -184,4 +184,11 @@ def demo():
 
 
 if __name__ == '__main__':
+    """
+        TODO:
+            1. This session is in 'prepared' state; no further SQL can be emitted within this transaction 的解决
+                https://blog.csdn.net/weixin_43620243/article/details/108733967，这里提供了方案，自身是否提供了关闭的功能？
+                或者找出更好的解决方法
+            2. 用变量或者redis来减少对数据库的访问，加快速度
+    """
     main()
