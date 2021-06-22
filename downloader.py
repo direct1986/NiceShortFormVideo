@@ -13,6 +13,7 @@ from os.path import exists, join as path_join
 from random import choice
 
 from fake_headers import Headers
+from requests.exceptions import MissingSchema
 
 from utils import (
     Parser, DataBase, log, create_db, CloseableQueue, start_threads, stop_thread, cfg)
@@ -55,16 +56,20 @@ def url_parse(url):
     content = resp.content
     result = False
 
-    # 针对访问两次才能获得视频对象的情况
-    if len(content) < 5000:
-        code, r_url, r_headers, resp = parser.get_html(content.decode())
-        content = resp.content
+    try:
+        # 针对访问两次才能获得视频对象的情况
+        if len(content) < 5000:
+            code, r_url, r_headers, resp = parser.get_html(content.decode())
+            content = resp.content
 
-        if len(content) > 5000:
+            if len(content) > 5000:
+                result = (r_url, content)
+
+        else:
             result = (r_url, content)
 
-    else:
-        result = (r_url, content)
+    except MissingSchema:
+        pass
 
     return result
 
@@ -129,7 +134,6 @@ def main():
     check_dir(save_dir)
 
     log.info("Downloader: start")
-    log.info("Downloader: done")
 
     url_queue = CloseableQueue()
     video_obj_queue = CloseableQueue()
@@ -152,7 +156,7 @@ def main():
     stop_thread(video_obj_queue, video_check_threads)
     stop_thread(video_save_queue, video_save_threads)
 
-    print("完成：", done_queue.qsize())
+    log.info("Downloader: done")
 
 
 def demo():
