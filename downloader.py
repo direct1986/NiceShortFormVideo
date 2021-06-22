@@ -170,7 +170,7 @@ def main():
     stop_thread(video_obj_queue, video_check_threads)
     stop_thread(video_save_queue, video_save_threads)
 
-    log.info("Downloader: done")
+    log.info(f"all work done, existed: {existed_counter}, bad: {bad}")
 
 
 def demo():
