@@ -75,4 +75,5 @@ class DataBase:
         self.session.close()
 
     def __del__(self):
-        self.close()
+        # 将线程还给线程池
+        self.session.remove()
