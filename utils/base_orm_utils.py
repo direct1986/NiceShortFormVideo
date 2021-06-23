@@ -23,7 +23,7 @@ def get_engine():
             poolclass=SingletonThreadPool,
             connect_args={'check_same_thread': False}
         )
-        print("sqlite")
+
     else:
         _engine = create_engine(
             cfg.db_uri,
