@@ -10,7 +10,7 @@
 """
 from hashlib import md5
 from os import stat
-from random import random
+from random import uniform
 
 import requests
 from fake_headers import Headers
@@ -23,8 +23,8 @@ class Parser:
 
     @staticmethod
     def gen_url(base_url):
-        t = random()
-        return f"{base_url}?_t={t}"
+        t = uniform(10000000000000000, 99999999999999999)
+        return f"{base_url}?_t=0.{t}"
 
     def get_html(self, url: str) -> tuple:
         response = requests.request("GET", url, headers=self.new_headers)

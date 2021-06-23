@@ -11,7 +11,7 @@
 from os import makedirs
 from os.path import exists, join as path_join
 from random import choice
-from time import time
+from time import time, sleep
 
 from fake_headers import Headers
 from requests.exceptions import MissingSchema
@@ -54,7 +54,6 @@ def url_parse(url):
     """
 
     result = False
-
     try:
         code, r_url, r_headers, resp = parser.get_html(url)
         content = resp.content
@@ -71,7 +70,7 @@ def url_parse(url):
             result = (r_url, content)
 
     except Exception as parser_err:
-        log.error(parser_err)
+        log.error(f"{url},{parser_err}")
 
         # 进度
         global counter
@@ -157,8 +156,8 @@ def main():
     video_save_queue = CloseableQueue()
     done_queue = CloseableQueue()
 
-    url_parse_threads = start_threads(3, url_parse, url_queue, video_obj_queue)
-    video_check_threads = start_threads(4, video_check, video_obj_queue, video_save_queue)
+    url_parse_threads = start_threads(2, url_parse, url_queue, video_obj_queue)
+    video_check_threads = start_threads(2, video_check, video_obj_queue, video_save_queue)
     video_save_threads = start_threads(5, video_save, video_save_queue, done_queue)
 
     # 下载用的基础链接
@@ -190,12 +189,28 @@ def main():
 
 def demo():
     # 新的 fake_headers用法
-    for _ in range(3):
-        headers = Headers(headers=True).generate()
-        print(headers)
-        print(type(headers))
+    """
+        bad :
+            http://www.kuaidoushe.com/video.php?_t=0.29081044950531687
+            https://xjj.349457.xyz/video.php?_t=0.03383993702189081
+            https://xjj.349457.xyz/video.php?_t=0.8114063105460985
+    """
+    s = """
+        b"<?xml version='1.0' encoding='utf-8' ?>\n<Error>\n\t<Code>NoSuchKey</Code>\n\t<Message>The specified key does not exist.</Message>\n\t<Resource>gifshowbak-10011997.cos.kwai-ap-beijing.myqcloud.com/upic/2020/09/17/23/BMjAyMDA5MTcyMzUwMjZfNjA4ODMzNzU2XzM2MjA0Nzk4MTE2XzBfMw==_b_B76dc109f4712d1296e8eeb414f1757f6.mp4</Resource>\n\t<RequestId>NjBkMzRhZTBfYTcwZWYyMDlfZTliMl8yNjQ4Njhm</RequestId>\n\t<TraceId>OGVmYzZiMmQzYjA2OWNhODk0NTRkMTBiOWVmMDAxODc0OWRkZjk0ZDM1NmI1M2E2MTRlY2MzZDhmNmI5MWI1OTQyYWVlY2QwZTk2MDVmZDQ3MmI2Y2I4ZmI5ZmM4ODFjZmFkYWRjYTUzYjBlOWY1NGE2ZjIyYzBiYjE2NmQwYmE=</TraceId>\n</Error>\n\n"
+    """
 
-    return
+    base_url = "http://www.kuaidoushe.com/video.php"
+    for no in range(1, 11):
+        url = parser.gen_url(base_url)
+        code, r_url, r_headers, resp = parser.get_html(url)
+        print(resp)
+        print(resp.content)
+
+        sleep(10)
+
+    """
+    b"The requested URL '/upic/2020/09/20/21/BMjAyMDA5MjAyMTUxMzlfNDgzMTQ0MjJfMzYzNzk2ODE2ODVfMV8z_b_Bc500db173bc1d09d7ddb3abe272988a5.mp4' was not found on this server.\n"
+    """
 
 
 if __name__ == '__main__':
@@ -205,4 +220,5 @@ if __name__ == '__main__':
             3. ORM类数据库连接池的抽象并建库
             4. 部分依然出错的网址的处理和再分析
     """
-    main()
+    # main()
+    demo()
