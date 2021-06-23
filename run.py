@@ -11,6 +11,7 @@
 from os import makedirs
 from os.path import exists, join as path_join
 from random import choice
+from time import time
 
 from fake_headers import Headers
 from requests.exceptions import MissingSchema
@@ -32,7 +33,7 @@ parser = Parser()
 save_dir = cfg.videos_dir
 
 # 下载到第几个，已经存在的个数
-counter, existed_counter, bad = (1, 0, 0)
+counter, existed_counter, bad_counter = (1, 0, 0)
 
 # 本轮下载，视频文件保存时候的开始序号，用于保存用
 next_id = db.get_next_id()
@@ -75,14 +76,14 @@ def url_parse(url):
         # 进度
         global counter
         global existed_counter
-        global bad
+        global bad_counter
 
         percent = round(counter / cfg.download_number * 100, 1) if counter < cfg.download_number else 100.0
         info = f"[ NO.{counter} | {percent}%, bad. ]"
         print(info)
 
         counter += 1
-        bad += 1
+        bad_counter += 1
 
     return result
 
@@ -148,6 +149,9 @@ def video_save(item):
 
 
 def main():
+    # 开始时间
+    start_time = time()
+
     # 检查保存视频的目录是否存在
     check_dir(save_dir)
 
@@ -174,7 +178,19 @@ def main():
     stop_thread(video_obj_queue, video_check_threads)
     stop_thread(video_save_queue, video_save_threads)
 
-    log.info(f"all work done, existed: {existed_counter}, bad: {bad}")
+    # 下载统计
+    # 下载的数量
+    total = cfg.download_number
+    saved_counter = cfg.download_number - existed_counter - bad_counter
+    time_cost = round((time() - start_time) / 60 / 60, 2)
+
+    report = f"""all work done
+                    total: {total}
+                    saved: {saved_counter}\t{round(saved_counter / total * 100, 1)}%
+                    existed: {existed_counter}\t{round(existed_counter / total * 100, 1)}%
+                    bad: {bad_counter}\t{round(bad_counter / total * 100, 1)}%
+                    time_cost: {time_cost} hour(s)"""
+    log.info(report)
 
 
 def demo():
