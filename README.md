@@ -1,6 +1,6 @@
 # NiceShortFormVideo
 
-下载好看的跳舞短视频，视频源于网络。master分支为单任务版，multiThreadingVersion分支为多任务版
+下载好看的跳舞短视频，视频源于网络。多任务版
 
 #### 使用说明
 
