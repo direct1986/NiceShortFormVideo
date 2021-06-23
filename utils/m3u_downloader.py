@@ -19,7 +19,7 @@ import time
 from asyncio import Queue
 from pathlib import Path
 from urllib.parse import urljoin
-from Crypto.Cipher import AES
+from Crypto.Cipher import AES  # pycryptodome
 import aiohttp
 import requests
 from tqdm import tqdm
@@ -32,7 +32,9 @@ logger = logging.getLogger(__name__)
 def m3u8content(m3u8_url):
     logger.debug(f"m3u8_url - {m3u8_url}")
     if m3u8_url.startswith("http"):
-        r = requests.get(m3u8_url, timeout=20, headers=headers, verify=True)
+        # verify=False，解决SSL: CERTIFICATE_VERIFY_FAILED错误
+        r = requests.get(m3u8_url, timeout=20, headers=headers, verify=False)
+
         if r.ok:
             ts_list = [urljoin(m3u8_url, n.strip()) for n in r.text.split('\n') if n and not n.startswith("#")]
             if ts_list[0].endswith("m3u8"):
@@ -97,7 +99,7 @@ class M3u8Downloader(object):
 
                 uri = urljoin(self.url, uri)
 
-                r = requests.get(uri, headers=headers)
+                r = requests.get(uri, headers=headers, verify=False)
                 if r.status_code == 200:
                     return r.content
                 logger.fatal(f"Can`t download key url: {uri}, maybe you should use proxy")
@@ -134,7 +136,7 @@ class M3u8Downloader(object):
             if i > 0:
                 logger.warning('[%s] Retry to download %s' % (save_path, url))
             try:
-                response = await session.get(url)
+                response = await session.get(url, verify=False)
                 content = await response.read()
                 file_size = response.headers['Content-Length']
             except Exception as e:
@@ -191,8 +193,12 @@ def main(url, out_path, file_name, worker_num, ts_timeout):
 
 
 if __name__ == '__main__':
-    m3u8_url = "https://www.123.com/123.m3u8"
-    file_name = '****'
-    # main(m3u8_url, out_path="E:\\tmp", file_name=file_name, worker_num=10, ts_timeout=120)
+    """TODO:SSL证书问题待解决
+        网约的帅哥和少妇家里厨房精彩后入.mov,https://video.caomin5168.com/20181211/lOvIdf7u/index.m3u8
+    """
+    m3u8_url = "https://video.caomin5168.com/20181211/lOvIdf7u/index.m3u8"
+    file_name = '网约的帅哥和少妇家里厨房精彩后入.mov'
+    out_dir = "../m3u_videos"
+    main(m3u8_url, out_path=out_dir, file_name=file_name, worker_num=10, ts_timeout=120)
     logging.info('All task complete...')
-    merge_file(path='E:\\tmp', file_name=file_name)
+    # merge_file(path='E:\\tmp', file_name=file_name)
