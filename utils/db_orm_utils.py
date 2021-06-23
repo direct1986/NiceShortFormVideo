@@ -9,7 +9,7 @@
 ------------------------------------------
 """
 from sqlalchemy import func
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, scoped_session
 
 from utils.models import Videos, engine
 
@@ -19,8 +19,12 @@ class DataBase:
         # 统一使用同一个变量，便于维护
         self.tb_data = Videos
         self.tv_data_keys = ["id", "url", "md5", "size"]
-        sess = sessionmaker(bind=engine)
-        self.session = sess()
+        session_factory = sessionmaker(bind=engine)
+        self.session_safe = scoped_session(session_factory)
+
+    @property
+    def session(self):
+        return self.session_safe()
 
     def get_next_id(self) -> int:
         """获取最大值"""

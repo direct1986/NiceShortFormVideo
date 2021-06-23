@@ -8,18 +8,10 @@
 @CreatedOn  : 2020/6/15 1:33
 --------------------------------------
 """
-import sqlalchemy
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, DateTime, func, Float
 
-from settings import cfg
+from base_orm_utils import Base, engine
 
-# check_same_thread = False, 解决多线程报错的问题
-engine = sqlalchemy.create_engine(cfg.db_uri, connect_args={"check_same_thread": False})
-Base = declarative_base()
-
-
-# 定义映射类User，其继承上一步创建的Base
 
 class BaseModel(Base):
     __abstract__ = True
@@ -36,4 +28,7 @@ class Videos(BaseModel):
 
 
 def create_db():
+    """
+        创建数据库
+    """
     Base.metadata.create_all(engine)
