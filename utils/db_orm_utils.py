@@ -11,6 +11,7 @@
 from sqlalchemy import func
 from sqlalchemy.orm import sessionmaker, scoped_session
 
+from settings import cfg
 from utils.models import Videos, engine
 
 
@@ -76,4 +77,5 @@ class DataBase:
 
     def __del__(self):
         # 将线程还给线程池
-        self.session.remove()
+        if "sqlite" not in cfg.db_uri.lower():
+            self.session.remove()

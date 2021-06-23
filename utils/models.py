@@ -10,7 +10,7 @@
 """
 from sqlalchemy import Column, Integer, String, DateTime, func, Float
 
-from base_orm_utils import Base, engine
+from .base_orm_utils import Base, engine
 
 
 class BaseModel(Base):
