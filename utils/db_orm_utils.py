@@ -78,4 +78,4 @@ class DataBase:
         rows = session.query(self.tb_data).with_entities(self.tb_data.md5).all()
         session.close()
 
-        return [x[0] for x in rows] or rows
+        return {x[0] for x in rows} or rows

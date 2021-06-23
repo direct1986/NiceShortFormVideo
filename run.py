@@ -28,10 +28,6 @@ except Exception as err:
 db = DataBase()
 parser = Parser()
 
-hash_value = db.fetch_all_hash_value()
-print(hash_value)
-# raise ValueError
-
 # 保存视频文件的目录
 save_dir = cfg.videos_dir
 
@@ -40,6 +36,9 @@ counter, existed_counter, bad = (1, 0, 0)
 
 # 本轮下载，视频文件保存时候的开始序号，用于保存用
 next_id = db.get_next_id()
+
+# 所有的保存的下载过的视频的hash值，用于检测是否已经下载过某个视频
+video_saved_hash = db.fetch_all_hash_value()
 
 
 def check_dir(dir_path):
@@ -94,11 +93,12 @@ def video_check(item):
     """
     global counter
     global existed_counter
+    global video_saved_hash
 
     r_url, content = item
     md5_v = parser.get_hash(content)
 
-    if db.has_data(md5_v):
+    if md5_v in video_saved_hash:
         # 进度
         percent = round(counter / cfg.download_number * 100, 1) if counter < cfg.download_number else 100.0
         info = f"[ NO.{counter} | {percent}%, existed. ]"
@@ -107,6 +107,10 @@ def video_check(item):
         existed_counter += 1
         counter += 1
         return
+
+    else:
+        # 将hash值保存到全局变量中，方便防止重复下载视频，并减少数据库访问开销，提高效率
+        video_saved_hash.add(md5_v)
 
     return r_url, md5_v, content
 
