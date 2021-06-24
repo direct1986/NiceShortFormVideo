@@ -13,9 +13,6 @@ from os.path import exists, join as path_join
 from random import choice
 from time import time, sleep
 
-from fake_headers import Headers
-from requests.exceptions import MissingSchema
-
 from utils import (
     Parser, DataBase, log, create_db, CloseableQueue, start_threads, stop_thread, cfg)
 
