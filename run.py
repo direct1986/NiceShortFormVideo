@@ -176,11 +176,11 @@ def main():
     time_cost = round((time() - start_time) / 60 / 60, 2)
 
     report = f"""all work done
-                    total: {total}
-                    saved: {saved_counter}\t{round(saved_counter / total * 100, 1)}%
-                    existed: {existed_counter}\t{round(existed_counter / total * 100, 1)}%
-                    bad: {bad_counter}\t{round(bad_counter / total * 100, 1)}%
-                    time_cost: {time_cost} hour(s)"""
+                    saved:   {saved_counter}\t[{round(saved_counter / total * 100, 1)}%]
+                    existed: {existed_counter}\t[{round(existed_counter / total * 100, 1)}%]
+                    bad:     {bad_counter}\t[{round(bad_counter / total * 100, 1)}%]
+                    total:   {total}
+                    time_cost: \t{time_cost} hour(s)\n"""
     log.info(report)
 
 
@@ -213,9 +213,13 @@ def demo():
 if __name__ == '__main__':
     """
         TODO:
-            2. 数据库类的装饰器的添加
+            1. 使用redis做缓存对比
+            *2. 数据库类的装饰器的添加
             3. ORM类数据库连接池的抽象并建库
             4. 部分依然出错的网址的处理和再分析
+            *5. 测试封装的DataBase对MySQL的ORM的通用性
+            others:
+                redis分布式锁：https://mp.weixin.qq.com/s/EBAe_UdAM0iXcFYhzm3KyA
     """
-    # main()
-    demo()
+    main()
+    # demo()

@@ -8,10 +8,24 @@
 @CreatedOn  : 2021/6/6 22:48
 ------------------------------------------
 """
+from functools import wraps
+
 from sqlalchemy import func
 from sqlalchemy.orm import sessionmaker, scoped_session
 
 from utils.models import Videos, engine
+
+
+def session_manager(f):
+    @wraps(f)
+    def inner(self, *args, **kwargs):
+        self.session = self.get_session()
+        value = f(self, *args, **kwargs)
+        self.session.close()
+
+        return value
+
+    return inner
 
 
 class DataBase:
@@ -21,19 +35,21 @@ class DataBase:
         self.tv_data_keys = ["id", "url", "md5", "size"]
         session_factory = sessionmaker(bind=engine)
         self.session_safe = scoped_session(session_factory)
+        self.session = None
 
-    def __get_session(self):
+    def get_session(self):
         return self.session_safe()
 
     def get_next_id(self) -> int:
         """获取最大值"""
-        session = self.__get_session()
-        row = session.query(self.tb_data).order_by(self.tb_data.id.desc()).first()
+        self.session = self.get_session()
+        row = self.session.query(self.tb_data).order_by(self.tb_data.id.desc()).first()
         next_id = (row.id + 1) if row else 1
 
-        session.close()
+        self.session.close()
         return next_id
 
+    @session_manager
     def insert(self, **kwargs):
         """插入数据"""
         tb_data = self.tb_data()
@@ -43,39 +59,34 @@ class DataBase:
                 v = kwargs.get(k)
                 setattr(tb_data, k, v)
 
-        session = self.__get_session()
-        session.add(tb_data)
-        session.commit()
-        session.close()
+        self.session.add(tb_data)
+        self.session.commit()
 
+    @session_manager
     def update(self, row_id: int, size: float):
         """更新数据"""
-        session = self.__get_session()
-        row = session.query(self.tb_data).filter(self.tb_data.id == row_id).first()
+        row = self.session.query(self.tb_data).filter(self.tb_data.id == row_id).first()
         row.endOn = func.now()
         row.size = size
-        session.commit()
-        session.close()
+        self.session.commit()
 
+    @session_manager
     def has_data(self, md5_value: str) -> bool:
         """通过判断MD5值，确定视频是否存在"""
-        session = self.__get_session()
-        row = session.query(self.tb_data).filter(self.tb_data.md5 == md5_value).first()
-        session.close()
+        row = self.session.query(self.tb_data).filter(self.tb_data.md5 == md5_value).first()
 
         return True if row else False
 
+    @session_manager
     def has_url(self, url: str) -> bool:
         """视频链接是否存在"""
-        session = self.__get_session()
-        row = session.query(self.tb_data).filter(self.tb_data.url == url).first()
-        session.close()
+        row = self.session.query(self.tb_data).filter(self.tb_data.url == url).first()
 
         return True if row else False
 
     def fetch_all_hash_value(self):
-        session = self.__get_session()
-        rows = session.query(self.tb_data).with_entities(self.tb_data.md5).all()
-        session.close()
+        self.session = self.get_session()
+        rows = self.session.query(self.tb_data).with_entities(self.tb_data.md5).all()
+        self.session.close()
 
         return {x[0] for x in rows} or rows
