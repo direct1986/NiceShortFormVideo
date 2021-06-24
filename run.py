@@ -214,12 +214,16 @@ if __name__ == '__main__':
     """
         TODO:
             1. 使用redis做缓存对比
-            *2. 数据库类的装饰器的添加
             3. ORM类数据库连接池的抽象并建库
             4. 部分依然出错的网址的处理和再分析
             *5. 测试封装的DataBase对MySQL的ORM的通用性
             others:
                 redis分布式锁：https://mp.weixin.qq.com/s/EBAe_UdAM0iXcFYhzm3KyA
     """
-    main()
+    # main()
     # demo()
+    from random import uniform
+
+    for _ in range(10):
+        t = uniform(10000000000000000, 99999999999999999)
+        print(str(t))
