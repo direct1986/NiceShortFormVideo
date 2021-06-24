@@ -40,13 +40,12 @@ class DataBase:
     def get_session(self):
         return self.session_safe()
 
+    @session_manager
     def get_next_id(self) -> int:
         """获取最大值"""
-        self.session = self.get_session()
         row = self.session.query(self.tb_data).order_by(self.tb_data.id.desc()).first()
         next_id = (row.id + 1) if row else 1
 
-        self.session.close()
         return next_id
 
     @session_manager
@@ -84,9 +83,8 @@ class DataBase:
 
         return True if row else False
 
+    @session_manager
     def fetch_all_hash_value(self):
-        self.session = self.get_session()
         rows = self.session.query(self.tb_data).with_entities(self.tb_data.md5).all()
-        self.session.close()
 
         return {x[0] for x in rows} or rows
