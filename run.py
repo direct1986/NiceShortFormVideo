@@ -220,10 +220,5 @@ if __name__ == '__main__':
             others:
                 redis分布式锁：https://mp.weixin.qq.com/s/EBAe_UdAM0iXcFYhzm3KyA
     """
-    # main()
+    main()
     # demo()
-    from random import uniform
-
-    for _ in range(10):
-        t = uniform(10000000000000000, 99999999999999999)
-        print(str(t))
