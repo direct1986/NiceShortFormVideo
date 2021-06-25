@@ -214,7 +214,6 @@ if __name__ == '__main__':
     """
         TODO:
             1. 使用redis做缓存对比
-            3. ORM类数据库连接池的抽象并建库
             4. 部分依然出错的网址的处理和再分析
             *5. 测试封装的DataBase对MySQL的ORM的通用性
             others:
