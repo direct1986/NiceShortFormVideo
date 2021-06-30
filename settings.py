@@ -56,7 +56,7 @@ class BaseConfig:
 
     # 下载视频的个数，由于可能在不同网站下载到相同的视频，又由于所下载的视频可能之前已经下载过，所以，实际保存的视频数 ≤ 下载的视频个数
     # tips: 每一个的视频下载是随机从urls中的一个去下载
-    download_number = 10
+    download_number = 500
 
 
 cfg = BaseConfig
