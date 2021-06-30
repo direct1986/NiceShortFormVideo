@@ -11,6 +11,7 @@
 from hashlib import md5
 from os import stat
 from random import uniform
+from time import time
 
 import requests
 from fake_headers import Headers
@@ -23,7 +24,7 @@ class Parser:
 
     @staticmethod
     def gen_url(base_url):
-        t = uniform(10000000000000000, 99999999999999999)
+        t = str(time()).replace(".", "")
         return f"{base_url}?_t=0.{t}"
 
     def get_html(self, url: str) -> tuple:
