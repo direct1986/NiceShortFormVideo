@@ -24,7 +24,7 @@ class Videos(BaseModel):
     __tablename__ = "videosData"
     md5 = Column(String(32), index=True, comment='MD5值')
     size = Column(Float(1), comment='文件大小，MB')
-    url = Column(String, index=True, comment='videos 地址')
+    url = Column(String(1536), index=True, comment='videos 地址')
 
 
 def create_db():
