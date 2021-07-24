@@ -51,6 +51,7 @@ def url_parse(url):
     """
 
     result = False
+    r_url = None
     try:
         code, r_url, r_headers, resp = parser.get_html(url)
         content = resp.content
@@ -67,7 +68,7 @@ def url_parse(url):
             result = (r_url, content)
 
     except Exception as parser_err:
-        log.error(f"{url},{parser_err}")
+        log.error(f"Bad | URL: [{url}]\n R_URL: {r_url}")
 
         # 进度
         global counter
@@ -196,7 +197,7 @@ def demo():
         b"<?xml version='1.0' encoding='utf-8' ?>\n<Error>\n\t<Code>NoSuchKey</Code>\n\t<Message>The specified key does not exist.</Message>\n\t<Resource>gifshowbak-10011997.cos.kwai-ap-beijing.myqcloud.com/upic/2020/09/17/23/BMjAyMDA5MTcyMzUwMjZfNjA4ODMzNzU2XzM2MjA0Nzk4MTE2XzBfMw==_b_B76dc109f4712d1296e8eeb414f1757f6.mp4</Resource>\n\t<RequestId>NjBkMzRhZTBfYTcwZWYyMDlfZTliMl8yNjQ4Njhm</RequestId>\n\t<TraceId>OGVmYzZiMmQzYjA2OWNhODk0NTRkMTBiOWVmMDAxODc0OWRkZjk0ZDM1NmI1M2E2MTRlY2MzZDhmNmI5MWI1OTQyYWVlY2QwZTk2MDVmZDQ3MmI2Y2I4ZmI5ZmM4ODFjZmFkYWRjYTUzYjBlOWY1NGE2ZjIyYzBiYjE2NmQwYmE=</TraceId>\n</Error>\n\n"
     """
 
-    base_url = "http://www.kuaidoushe.com/video.php"
+    base_url = "https://sp.nico.run/video.php"
     for no in range(1, 11):
         url = parser.gen_url(base_url)
         code, r_url, r_headers, resp = parser.get_html(url)
