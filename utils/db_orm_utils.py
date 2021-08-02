@@ -77,6 +77,14 @@ class DataBase:
         return True if row else False
 
     @session_manager
+    def has_url(self, url):
+        """判断地址是否存在"""
+        row = self.session.query(self.tb_data).filter(self.tb_data.url == url).first()
+
+        return True if row else False
+
+
+    @session_manager
     def has_url(self, url: str) -> bool:
         """视频链接是否存在"""
         row = self.session.query(self.tb_data).filter(self.tb_data.url == url).first()

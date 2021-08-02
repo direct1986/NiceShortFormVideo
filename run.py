@@ -96,7 +96,7 @@ def video_check(item):
     r_url, content = item
     md5_v = parser.get_hash(content)
 
-    if db.has_data(md5_v):
+    if db.has_url(r_url) or db.has_data(md5_v):
         # 进度
         percent = round(counter / cfg.download_number * 100, 1) if counter < cfg.download_number else 100.0
         info = f"[ NO.{counter} | {percent}%, existed. ]"
