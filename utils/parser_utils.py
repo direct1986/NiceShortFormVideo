@@ -73,4 +73,4 @@ class Parser:
     def new_headers(self) -> dict:
         """随机生成 User-Agent, 并返回完整 headers"""
 
-        return Headers(headers=True).generate()
+        return Headers(headers=True, browser='chrome').generate()

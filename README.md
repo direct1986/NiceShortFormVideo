@@ -6,6 +6,8 @@
 
 + 电脑上安装 `Python3.6`及以上版本
 + `CD`到项目根目录内，运行`pip install -r requirements.txt`安装所需库
++ 本程序需要用到数据库，请在`settings.py`中配置自己的数据库`ORM`连接信息
++ 首次运行需运行`python init.py`进行初始化
 + 运行命令`python run.py`即可自动下载
 
 #### *Tips*
