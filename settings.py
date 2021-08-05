@@ -60,10 +60,12 @@ class BaseConfig:
     ]
 
     # # 线程相关设置
-    parser_worker = 5  # 解析线程数
-    check_worker = 5  # 验证线程数
+    parser_worker = 10  # 解析线程数
+    check_worker = 10  # 验证线程数
     save_worker = 10  # 下载线程数
 
+    # 队列长度， 防止内存溢出
+    queue_size = 1000
     parser_delay = 1  # 解析线程的延迟时间，防止反爬虫, 单位:秒
 
     # 下载视频的个数，由于可能在不同网站下载到相同的视频，又由于所下载的视频可能之前已经下载过，所以，实际保存的视频数 ≤ 下载的视频个数

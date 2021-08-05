@@ -236,11 +236,11 @@ def demo2():
     check_dir(save_dir)
 
     log.info("Downloader: start")
-
-    url_queue = CloseableQueue(100)
-    video_obj_queue = CloseableQueue()
-    video_save_queue = CloseableQueue()
-    done_queue = CloseableQueue()
+    queue_size = cfg.queue_size
+    url_queue = CloseableQueue(queue_size)
+    video_obj_queue = CloseableQueue(queue_size)
+    video_save_queue = CloseableQueue(queue_size)
+    done_queue = CloseableQueue(queue_size)
 
     url_parse_threads = start_threads(cfg.parser_worker, url_parse, url_queue, video_obj_queue)
     video_check_threads = start_threads(cfg.check_worker, video_check, video_obj_queue, video_save_queue)
