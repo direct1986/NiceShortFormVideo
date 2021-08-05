@@ -76,8 +76,8 @@ def url_parse(url):
         global bad_counter
 
         percent = round(counter / cfg.download_number * 100, 1) if counter < cfg.download_number else 100.0
-        info = f"[ NO.{counter} | {percent}%, bad. ]"
-        print(info)
+        info = f" NO.{counter} | {percent}%, bad. "
+        log.info(info)
 
         counter += 1
         bad_counter += 1
@@ -130,18 +130,31 @@ def video_save(item):
         "md5": md5_v,
         "size": size
     }
-    db.insert(**data)
+    try:
+        db.insert(**data)
+        # 进度
+        percent = round(counter / cfg.download_number * 100, 1) if counter < cfg.download_number else 100.0
+        info = f"[ NO.{counter} | {percent}% | file: {next_id}.m4 | saved. ]"
+        print(info)
 
-    # 进度
-    percent = round(counter / cfg.download_number * 100, 1) if counter < cfg.download_number else 100.0
-    info = f"[ NO.{counter} | {percent}% | file: {next_id}.m4 | saved. ]"
-    print(info)
+    except Exception as save_err:
+        log.error(f"NO.{counter} | url: {r_url} | err: {save_err}")
 
     next_id += 1
     counter += 1
 
 
 def main():
+    """
+            todo:
+                1. 使用redis做缓存对比
+                2. 多线程下的 MySQL错误问题
+                3. 内存爆炸问题
+                4. 部分依然出错的网址的处理和再分析
+                *5. 测试封装的DataBase对MySQL的ORM的通用性
+            others:
+                redis分布式锁：https://mp.weixin.qq.com/s/EBAe_UdAM0iXcFYhzm3KyA
+    """
     # 开始时间
     start_time = time()
 
@@ -212,14 +225,54 @@ def demo():
     """
 
 
+def demo2():
+    """
+        从文件中添加 url
+    """
+    # 开始时间
+    start_time = time()
+
+    # 检查保存视频的目录是否存在
+    check_dir(save_dir)
+
+    log.info("Downloader: start")
+
+    url_queue = CloseableQueue(100)
+    video_obj_queue = CloseableQueue()
+    video_save_queue = CloseableQueue()
+    done_queue = CloseableQueue()
+
+    url_parse_threads = start_threads(cfg.parser_worker, url_parse, url_queue, video_obj_queue)
+    video_check_threads = start_threads(cfg.check_worker, video_check, video_obj_queue, video_save_queue)
+    video_save_threads = start_threads(cfg.download_number, video_save, video_save_queue, done_queue)
+
+    # 下载用的基础链接
+    urls = cfg.urls
+
+    # 向下载队列中填入生成的下载链接
+    file_path = "data/urls.txt"
+    for i in parser.file_url_parser(file_path):
+        url_queue.put(i.strip())
+
+    stop_thread(url_queue, url_parse_threads)
+    stop_thread(video_obj_queue, video_check_threads)
+    stop_thread(video_save_queue, video_save_threads)
+
+    # 下载统计
+    # 下载的数量
+    total = cfg.download_number
+    saved_counter = cfg.download_number - existed_counter - bad_counter
+    time_cost = round((time() - start_time) / 60 / 60, 2)
+
+    report = f"""all work done
+                        saved:   {saved_counter}\t[{round(saved_counter / total * 100, 1)}%]
+                        existed: {existed_counter}\t[{round(existed_counter / total * 100, 1)}%]
+                        bad:     {bad_counter}\t[{round(bad_counter / total * 100, 1)}%]
+                        total:   {total}
+                        time_cost: \t{time_cost} hour(s)\n"""
+    log.info(report)
+
+
 if __name__ == '__main__':
-    """
-        TODO:
-            1. 使用redis做缓存对比
-            4. 部分依然出错的网址的处理和再分析
-            *5. 测试封装的DataBase对MySQL的ORM的通用性
-            others:
-                redis分布式锁：https://mp.weixin.qq.com/s/EBAe_UdAM0iXcFYhzm3KyA
-    """
-    main()
-    # demo()
+    # main()
+    demo2()

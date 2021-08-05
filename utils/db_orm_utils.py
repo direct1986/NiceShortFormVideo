@@ -83,7 +83,6 @@ class DataBase:
 
         return True if row else False
 
-
     @session_manager
     def has_url(self, url: str) -> bool:
         """视频链接是否存在"""

@@ -74,3 +74,12 @@ class Parser:
         """随机生成 User-Agent, 并返回完整 headers"""
 
         return Headers(headers=True, browser='chrome').generate()
+
+    @staticmethod
+    def file_url_parser(file_path):
+        """
+            解析文件中的 url
+        """
+        with open(file_path, 'r') as f:
+            for i in f:
+                yield i
