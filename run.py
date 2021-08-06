@@ -8,7 +8,7 @@
 @CreatedOn  : 2020/6/15 0:39
 --------------------------------------
 """
-from os import makedirs
+from os import makedirs, remove
 from os.path import exists, join as path_join
 from random import choice, shuffle
 from time import time, sleep
@@ -67,7 +67,7 @@ def url_parse(url):
             code, r_url, r_headers, resp = parser.get_html(content.decode())
             content = resp.content
 
-            if b'<?xml' not in content and len(content) > 100:
+            if b'<?xml' not in content and len(content) > 500:
                 result = (r_url, content)
 
             else:
@@ -132,7 +132,10 @@ def video_save(item):
         parser.save(file_path, content)
 
         # 保存数据信息
-        size = parser.get_size(content)
+        size = parser.get_size(file_path)
+
+        if size < 0.5:
+            remove(file_path)
 
         data = {
             "id": next_id,
@@ -311,7 +314,14 @@ def demo3():
         f.write(content)
 
 
+def demo_test():
+    file_path = "videos/10666.mp4"
+    size = parser.get_size(file_path)
+    print(f"{size} MB")
+
+
 if __name__ == '__main__':
+    # demo_test()
     # main()
     # demo()
     demo2()  # 用于解析从文件中读取的url

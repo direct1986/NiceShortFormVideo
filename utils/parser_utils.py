@@ -10,6 +10,7 @@
 """
 from hashlib import md5
 from os import stat
+from os.path import getsize as os_getsize
 from random import uniform
 from time import time
 
@@ -42,23 +43,17 @@ class Parser:
         return result
 
     @staticmethod
-    def get_size(arg: str or int or float or bytes) -> float:
+    def get_size(file_path) -> float:
         """
         将给定的表示大小的值，转换为小数，单位转换为 MB
         """
+        size = 0
         # 获取路径指向的文件的大小
-        if isinstance(arg, str):
-            kb = stat(arg).st_size
+        if isinstance(file_path, str):
+            kb = os_getsize(file_path)
+            size = round(kb / 1024 / 1024, 2)
 
-        # 获取传入的二进制对象的大小
-        elif isinstance(arg, bytes):
-            kb = len(arg) / 1024
-        else:
-            kb = arg
-
-        mb = round(kb / 1024 / 1024, 1)
-
-        return mb
+        return size
 
     @staticmethod
     def save(path, content):
