@@ -31,7 +31,7 @@ lock = Lock()
 # 保存视频文件的目录
 save_dir = cfg.videos_dir
 
-# 下载到第几个，已经存在的个数
+# 第几个处理完成，已经存在的个数，下载失败的个数
 counter, existed_counter, bad_counter = (1, 0, 0)
 
 # 本轮下载，视频文件保存时候的开始序号，用于保存用
@@ -48,50 +48,52 @@ def check_dir(dir_path):
     """
     if not exists(dir_path):
         makedirs(dir_path)
-        print(f"{dir_path}, created.")
+        log.info(f"{dir_path}, created.")
 
 
 def url_parse(url):
     """
         解析给定链接，返回视频二进制对象
     """
+    global counter
+    global existed_counter
+    global bad_counter
 
-    result = False
-    r_url = None
-    try:
-        code, r_url, r_headers, resp = parser.get_html(url)
-        content = resp.content
-
-        # 针对访问两次才能获得视频对象的情况
-        if b'<?xml' in content:
-            code, r_url, r_headers, resp = parser.get_html(content.decode())
+    with lock:
+        result = False
+        r_url = None
+        try:
+            code, r_url, r_headers, resp = parser.get_html(url)
             content = resp.content
 
-            if b'<?xml' not in content and len(content) > 500:
-                result = (r_url, content)
+            # 针对访问两次才能获得视频对象的情况
+            if b'<?xml' in content:
+                code, r_url, r_headers, resp = parser.get_html(content.decode())
+                content = resp.content
+
+                if b'<?xml' not in content and len(content) > 500:
+                    result = (r_url, content)
+
+                else:
+                    raise ParserError("返回结果非视频文件")
 
             else:
-                raise ParserError("返回结果非视频文件")
+                result = (r_url, content)
 
-        else:
-            result = (r_url, content)
+        except Exception as parser_err:
+            log.error(f"Bad | URL: [{url}]\n R_URL: {r_url} |error: {parser_err}")
 
-    except Exception as parser_err:
-        log.error(f"Bad | URL: [{url}]\n R_URL: {r_url}")
+            # 进度
+            percent = round(counter / cfg.download_number * 100, 1) if counter < cfg.download_number else 100.0
+            info = f" NO.{counter} | {percent}%, bad. "
+            log.info(info)
 
-        # 进度
-        global counter
-        global existed_counter
-        global bad_counter
+            # 因为parser出错，未传递任何数据给下游队列，所以，该url的处理在本函数内结束
+            # 所以，出错的时候才 counter + 1
+            counter += 1
+            bad_counter += 1
 
-        percent = round(counter / cfg.download_number * 100, 1) if counter < cfg.download_number else 100.0
-        info = f" NO.{counter} | {percent}%, bad. "
-        log.info(info)
-
-        counter += 1
-        bad_counter += 1
-
-    return result
+        return result
 
 
 def video_check(item):
@@ -107,11 +109,14 @@ def video_check(item):
 
         if db.has_url(r_url) or db.has_data(md5_v):
             # 进度
-            percent = round(counter / cfg.download_number * 100, 1) if counter < cfg.download_number else 100.0
+            percent = round(counter / cfg.download_number * 100, 3) if counter < cfg.download_number else 100.0
             info = f"[ NO.{counter} | {percent}%, existed. ]"
-            print(info)
+            log.info(info)
 
             existed_counter += 1
+
+            # 同理，这里说明该视频已经下载过，对该视频（或者说由上游url产生的视频）的处理到此结束，
+            # 所以，这里 counter += 1
             counter += 1
             return
 
@@ -129,6 +134,7 @@ def video_save(item):
         r_url, md5_v, content = item
         file_path = path_join(save_dir, f"{next_id}.mp4")
 
+        # 保存文件
         parser.save(file_path, content)
 
         # 保存数据信息
@@ -146,9 +152,9 @@ def video_save(item):
         try:
             db.insert(**data)
             # 进度
-            percent = round(counter / cfg.download_number * 100, 1) if counter < cfg.download_number else 100.0
-            info = f"[ NO.{counter} | {percent}% | file: {next_id}.m4 | saved. ]"
-            print(info)
+            percent = round(counter / cfg.download_number * 100, 3) if counter < cfg.download_number else 100.0
+            info = f"NO.{counter} | {percent}% | file: {next_id}.m4 | saved."
+            log.info(info)
 
         except Exception as save_err:
             log.error(f"NO.{counter} | url: {r_url} | err: {save_err}")
@@ -212,36 +218,6 @@ def main():
     log.info(report)
 
 
-def demo():
-    # 新的 fake_headers用法
-    """
-        bad :
-            http://www.kuaidoushe.com/video.php?_t=0.29081044950531687
-            https://xjj.349457.xyz/video.php?_t=0.03383993702189081
-            https://xjj.349457.xyz/video.php?_t=0.8114063105460985
-    """
-    s = b"<?xml version='1.0' encoding='utf-8' ?>\n<Error>\n\t<Code>NoSuchKey</Code>\n\t<Message>The specified key does not exist.</Message>\n\t<Resource>gifshowbak-10011997.cos.kwai-ap-beijing.myqcloud.com/upic/2020/09/17/23/BMjAyMDA5MTcyMzUwMjZfNjA4ODMzNzU2XzM2MjA0Nzk4MTE2XzBfMw==_b_B76dc109f4712d1296e8eeb414f1757f6.mp4</Resource>\n\t<RequestId>NjBkMzRhZTBfYTcwZWYyMDlfZTliMl8yNjQ4Njhm</RequestId>\n\t<TraceId>OGVmYzZiMmQzYjA2OWNhODk0NTRkMTBiOWVmMDAxODc0OWRkZjk0ZDM1NmI1M2E2MTRlY2MzZDhmNmI5MWI1OTQyYWVlY2QwZTk2MDVmZDQ3MmI2Y2I4ZmI5ZmM4ODFjZmFkYWRjYTUzYjBlOWY1NGE2ZjIyYzBiYjE2NmQwYmE=</TraceId>\n</Error>\n\n"
-
-    print(len(s))
-    print(type(s))
-
-    if b'<?xml' in s:
-        print("YES")
-
-    base_url = "https://sp.nico.run/video.php"
-    for no in range(1, 11):
-        url = parser.gen_url(base_url)
-        code, r_url, r_headers, resp = parser.get_html(url)
-        print(resp)
-        print(resp.content)
-
-        sleep(10)
-
-    """
-    b"The requested URL '/upic/2020/09/20/21/BMjAyMDA5MjAyMTUxMzlfNDgzMTQ0MjJfMzYzNzk2ODE2ODVfMV8z_b_Bc500db173bc1d09d7ddb3abe272988a5.mp4' was not found on this server.\n"
-    """
-
-
 def demo2():
     """
         从文件中添加 url
@@ -255,9 +231,10 @@ def demo2():
     # 检查保存视频的目录是否存在
     check_dir(save_dir)
 
-    log.info("Downloader: start")
+    log.info("Downloader with urls from file: start")
+
     queue_size = cfg.queue_size
-    url_queue = CloseableQueue()
+    url_queue = CloseableQueue(queue_size)
     video_obj_queue = CloseableQueue(queue_size)
     video_save_queue = CloseableQueue(queue_size)
     done_queue = CloseableQueue(queue_size)
@@ -308,7 +285,7 @@ def demo3():
     saved_urls = db.fetch_all_urls()
     diff_urls = urls - saved_urls
 
-    print(f"old: {len(urls)} | new: {len(diff_urls)} | diff: {len(urls) - len(diff_urls)}")
+    log.info(f"old: {len(urls)} | new: {len(diff_urls)} | diff: {len(urls) - len(diff_urls)}")
     content = "\n".join(diff_urls)
     with open(file_path, 'w') as f:
         f.write(content)
