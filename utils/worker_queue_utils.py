@@ -101,6 +101,6 @@ def stop_thread(closable_queue, threads):
     # 实际上意味着等到队列为空，再执行别的操作
     closable_queue.join()
 
-    # 等待所有线程结束再推出
+    # 等待所有线程结束再退出
     for thread in threads:
         thread.join()
