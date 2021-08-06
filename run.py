@@ -63,11 +63,11 @@ def url_parse(url):
         content = resp.content
 
         # 针对访问两次才能获得视频对象的情况
-        if len(content) < 2000:
+        if b'<?xml' in content:
             code, r_url, r_headers, resp = parser.get_html(content.decode())
             content = resp.content
 
-            if len(content) > 2000:
+            if b'<?xml' not in content and len(content) > 100:
                 result = (r_url, content)
 
             else:
@@ -91,8 +91,6 @@ def url_parse(url):
         counter += 1
         bad_counter += 1
 
-    if not result:
-        print("result: ", result)
     return result
 
 
@@ -100,10 +98,10 @@ def video_check(item):
     """
         检验视频对象是否满足保存要求
     """
-    with lock:
-        global counter
-        global existed_counter
+    global counter
+    global existed_counter
 
+    with lock:
         r_url, content = item
         md5_v = parser.get_hash(content)
 
@@ -124,10 +122,10 @@ def video_save(item):
     """
         保存视频对象为文件，并在数据库中添加相应的内容
     """
-    with lock:
-        global counter
-        global next_id
+    global counter
+    global next_id
 
+    with lock:
         r_url, md5_v, content = item
         file_path = path_join(save_dir, f"{next_id}.mp4")
 
@@ -219,9 +217,13 @@ def demo():
             https://xjj.349457.xyz/video.php?_t=0.03383993702189081
             https://xjj.349457.xyz/video.php?_t=0.8114063105460985
     """
-    s = """
-        b"<?xml version='1.0' encoding='utf-8' ?>\n<Error>\n\t<Code>NoSuchKey</Code>\n\t<Message>The specified key does not exist.</Message>\n\t<Resource>gifshowbak-10011997.cos.kwai-ap-beijing.myqcloud.com/upic/2020/09/17/23/BMjAyMDA5MTcyMzUwMjZfNjA4ODMzNzU2XzM2MjA0Nzk4MTE2XzBfMw==_b_B76dc109f4712d1296e8eeb414f1757f6.mp4</Resource>\n\t<RequestId>NjBkMzRhZTBfYTcwZWYyMDlfZTliMl8yNjQ4Njhm</RequestId>\n\t<TraceId>OGVmYzZiMmQzYjA2OWNhODk0NTRkMTBiOWVmMDAxODc0OWRkZjk0ZDM1NmI1M2E2MTRlY2MzZDhmNmI5MWI1OTQyYWVlY2QwZTk2MDVmZDQ3MmI2Y2I4ZmI5ZmM4ODFjZmFkYWRjYTUzYjBlOWY1NGE2ZjIyYzBiYjE2NmQwYmE=</TraceId>\n</Error>\n\n"
-    """
+    s = b"<?xml version='1.0' encoding='utf-8' ?>\n<Error>\n\t<Code>NoSuchKey</Code>\n\t<Message>The specified key does not exist.</Message>\n\t<Resource>gifshowbak-10011997.cos.kwai-ap-beijing.myqcloud.com/upic/2020/09/17/23/BMjAyMDA5MTcyMzUwMjZfNjA4ODMzNzU2XzM2MjA0Nzk4MTE2XzBfMw==_b_B76dc109f4712d1296e8eeb414f1757f6.mp4</Resource>\n\t<RequestId>NjBkMzRhZTBfYTcwZWYyMDlfZTliMl8yNjQ4Njhm</RequestId>\n\t<TraceId>OGVmYzZiMmQzYjA2OWNhODk0NTRkMTBiOWVmMDAxODc0OWRkZjk0ZDM1NmI1M2E2MTRlY2MzZDhmNmI5MWI1OTQyYWVlY2QwZTk2MDVmZDQ3MmI2Y2I4ZmI5ZmM4ODFjZmFkYWRjYTUzYjBlOWY1NGE2ZjIyYzBiYjE2NmQwYmE=</TraceId>\n</Error>\n\n"
+
+    print(len(s))
+    print(type(s))
+
+    if b'<?xml' in s:
+        print("YES")
 
     base_url = "https://sp.nico.run/video.php"
     for no in range(1, 11):
@@ -286,14 +288,28 @@ def demo2():
 
 
 def demo3():
-    name = demo3.__name__
-    print(name)
-    print(type(name))
+    file_path = "data/urls.txt"
+    file_path2 = "data/urls.txt"
+    urls = set()
 
-    test_queue = CloseableQueue()
+    count = 1
+    for i in parser.file_url_parser(file_path):
+        url = i.strip()
+        urls.add(url)
+
+        count += 1
+
+    saved_urls = db.fetch_all_urls()
+    diff_urls = urls - saved_urls
+
+    print(f"old: {len(urls)} | new: {len(diff_urls)} | diff: {len(urls) - len(diff_urls)}")
+    content = "\n".join(diff_urls)
+    with open(file_path2, 'w') as f:
+        f.write(content)
 
 
 if __name__ == '__main__':
     # main()
+    # demo()
     demo2()  # 用于解析从文件中读取的url
     # demo3()

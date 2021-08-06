@@ -68,7 +68,7 @@ class StoppableWorker(Thread):
         return func_name, q_name1, q_name2
 
     def run(self):
-        func_name, name1, name2 = self.judge_queue_name() if cfg.queue_size_display else (None, None)
+        func_name, name1, name2 = self.judge_queue_name() if cfg.queue_size_display else ('', '', '')
 
         for item in self.in_queue:
             result = self.func(item)

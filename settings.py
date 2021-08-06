@@ -21,7 +21,7 @@ class BaseConfig:
     db_uri = f"mysql+pymysql://spider:Spider666123~@192.168.3.2/videos?charset=utf8"
 
     # 连接池大小
-    pool_size = 5
+    pool_size = 10
 
     # 超过连接池的大小外最多创建的连接
     max_overflow = 10
@@ -62,13 +62,13 @@ class BaseConfig:
     # # 线程相关设置
     parser_worker = 10  # 解析线程数
     check_worker = 10  # 验证线程数
-    save_worker = 10  # 下载线程数
+    save_worker = 20  # 下载线程数
 
     # 队列长度， 防止内存溢出
     queue_size = 1000
 
     # 是否显示queue长度相关信息，便于调试
-    queue_size_display = False
+    queue_size_display = True
 
     # 下载视频的个数，由于可能在不同网站下载到相同的视频，又由于所下载的视频可能之前已经下载过，所以，实际保存的视频数 ≤ 下载的视频个数
     # tips: 每一个的视频下载是随机从urls中的一个去下载

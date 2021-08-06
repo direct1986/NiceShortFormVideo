@@ -95,3 +95,9 @@ class DataBase:
         rows = self.session.query(self.tb_data).with_entities(self.tb_data.md5).all()
 
         return {x[0] for x in rows} or rows
+
+    @session_manager
+    def fetch_all_urls(self):
+        rows = self.session.query(self.tb_data).with_entities(self.tb_data.url).all()
+
+        return {x[0] for x in rows} or rows
