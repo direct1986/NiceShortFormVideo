@@ -81,5 +81,4 @@ class Parser:
             解析文件中的 url
         """
         with open(file_path, 'r') as f:
-            for i in f:
-                yield i
+            return [x.strip() for x in f]

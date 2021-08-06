@@ -10,7 +10,7 @@
 """
 from os import makedirs
 from os.path import exists, join as path_join
-from random import choice
+from random import choice, shuffle
 from time import time, sleep
 from threading import Lock
 
@@ -268,8 +268,11 @@ def demo2():
 
     # 向下载队列中填入生成的下载链接
     file_path = "data/urls.txt"
-    for i in parser.file_url_parser(file_path):
-        url_queue.put(i.strip())
+    urls_from_file = parser.file_url_parser(file_path)
+    shuffle(urls_from_file)  # 打乱原有顺序
+
+    for i in urls_from_file:
+        url_queue.put(i)
 
     stop_thread(url_queue, url_parse_threads)
     stop_thread(video_obj_queue, video_check_threads)
@@ -298,10 +301,8 @@ def demo3():
     urls = set()
 
     count = 1
-    for i in parser.file_url_parser(file_path):
-        url = i.strip()
+    for url in parser.file_url_parser(file_path):
         urls.add(url)
-
         count += 1
 
     saved_urls = db.fetch_all_urls()
@@ -317,3 +318,4 @@ if __name__ == '__main__':
     # main()
     # demo()
     demo2()  # 用于解析从文件中读取的url
+    # demo3()
