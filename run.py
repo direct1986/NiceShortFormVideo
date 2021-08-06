@@ -243,6 +243,9 @@ def demo2():
     """
         从文件中添加 url
     """
+    # 去掉文件中已经下载过的url
+    demo3()
+
     # 开始时间
     start_time = time()
 
@@ -288,6 +291,9 @@ def demo2():
 
 
 def demo3():
+    """
+        去掉文件中已经下载过的url
+    """
     file_path = "data/urls.txt"
     urls = set()
 
@@ -310,5 +316,4 @@ def demo3():
 if __name__ == '__main__':
     # main()
     # demo()
-    # demo2()  # 用于解析从文件中读取的url
-    demo3()
+    demo2()  # 用于解析从文件中读取的url
