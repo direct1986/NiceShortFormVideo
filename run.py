@@ -156,14 +156,14 @@ def video_save(item):
 
 def main():
     """
-            todo:
-                1. 使用redis做缓存对比
-                2. 多线程下的 MySQL错误问题
-                3. 内存爆炸问题
-                4. 部分依然出错的网址的处理和再分析
-                *5. 测试封装的DataBase对MySQL的ORM的通用性
-            others:
-                redis分布式锁：https://mp.weixin.qq.com/s/EBAe_UdAM0iXcFYhzm3KyA
+        todo:
+            1. 使用redis做缓存对比
+            2. 多线程下的 MySQL错误问题
+            3. 内存爆炸问题
+            4. 部分依然出错的网址的处理和再分析
+            *5. 测试封装的DataBase对MySQL的ORM的通用性
+        others:
+            redis分布式锁：https://mp.weixin.qq.com/s/EBAe_UdAM0iXcFYhzm3KyA
     """
     # 开始时间
     start_time = time()
@@ -289,7 +289,6 @@ def demo2():
 
 def demo3():
     file_path = "data/urls.txt"
-    file_path2 = "data/urls.txt"
     urls = set()
 
     count = 1
@@ -304,12 +303,12 @@ def demo3():
 
     print(f"old: {len(urls)} | new: {len(diff_urls)} | diff: {len(urls) - len(diff_urls)}")
     content = "\n".join(diff_urls)
-    with open(file_path2, 'w') as f:
+    with open(file_path, 'w') as f:
         f.write(content)
 
 
 if __name__ == '__main__':
     # main()
     # demo()
-    demo2()  # 用于解析从文件中读取的url
-    # demo3()
+    # demo2()  # 用于解析从文件中读取的url
+    demo3()

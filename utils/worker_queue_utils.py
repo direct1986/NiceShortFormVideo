@@ -57,13 +57,17 @@ class StoppableWorker(Thread):
         q_name1 = ''
         q_name2 = ''
 
-        if func_name == 'video_check':
+        if func_name == 'url_parse':
+            q_name1 = 'url_queue'
+            q_name2 = 'video_obj_queue'
+
+        elif func_name == 'video_check':
             q_name1 = 'video_obj_queue'
             q_name2 = 'video_save_queue'
 
-        elif func_name == 'url_parse':
-            q_name1 = 'url_queue'
-            q_name2 = 'video_obj_queue'
+        elif func_name == 'video_save':
+            q_name1 = 'video_save_queue'
+            q_name2 = 'done_queue'
 
         return func_name, q_name1, q_name2
 
