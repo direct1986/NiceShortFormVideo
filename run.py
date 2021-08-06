@@ -263,9 +263,6 @@ def demo2():
     video_check_threads = start_threads(cfg.check_worker, video_check, video_obj_queue, video_save_queue)
     video_save_threads = start_threads(cfg.download_number, video_save, video_save_queue, done_queue)
 
-    # 下载用的基础链接
-    urls = cfg.urls
-
     # 向下载队列中填入生成的下载链接
     file_path = "data/urls.txt"
     urls_from_file = parser.file_url_parser(file_path)
