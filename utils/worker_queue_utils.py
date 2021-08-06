@@ -10,7 +10,9 @@
 原作者代码：https://github.com/bslatkin/effectivepython/blob/master/example_code/item_55.py
 """
 from queue import Queue
-from threading import Thread, Lock
+from threading import Thread
+
+from settings import cfg
 
 
 class CloseableQueue(Queue):
@@ -49,17 +51,35 @@ class StoppableWorker(Thread):
         self.func = func
         self.in_queue = in_queue
         self.out_queue = out_queue
-        self.lock = Lock()
+
+    def judge_queue_name(self):
+        func_name = self.func.__name__
+        q_name1 = ''
+        q_name2 = ''
+
+        if func_name == 'video_check':
+            q_name1 = 'video_obj_queue'
+            q_name2 = 'video_save_queue'
+
+        elif func_name == 'url_parse':
+            q_name1 = 'url_queue'
+            q_name2 = 'video_obj_queue'
+
+        return func_name, q_name1, q_name2
 
     def run(self):
-        # todo: 为什么这里不用锁 —— with lock: ...
-        for item in self.in_queue:
-            with self.lock:
-                result = self.func(item)
+        func_name, name1, name2 = self.judge_queue_name() if cfg.queue_size_display else (None, None)
 
-                # 当正确返回的时候，才放到下一个
-                if result:
-                    self.out_queue.put(result)
+        for item in self.in_queue:
+            result = self.func(item)
+
+            # 当正确返回的时候，才放到下一个
+            if result:
+                self.out_queue.put(result)
+
+            if cfg.queue_size_display:
+                info = f"{func_name} | {name1}: {self.in_queue.qsize()} | {name2}: {self.out_queue.qsize()}"
+                print(info)
 
 
 def start_threads(count, *args):

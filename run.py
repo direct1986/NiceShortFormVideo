@@ -12,6 +12,7 @@ from os import makedirs
 from os.path import exists, join as path_join
 from random import choice
 from time import time, sleep
+from threading import Lock
 
 from utils import (
     Parser, DataBase, log, create_db, CloseableQueue, start_threads, stop_thread, cfg)
@@ -25,6 +26,7 @@ except Exception as err:
 # 一些全局变量
 db = DataBase()
 parser = Parser()
+lock = Lock()
 
 # 保存视频文件的目录
 save_dir = cfg.videos_dir
@@ -34,6 +36,10 @@ counter, existed_counter, bad_counter = (1, 0, 0)
 
 # 本轮下载，视频文件保存时候的开始序号，用于保存用
 next_id = db.get_next_id()
+
+
+class ParserError(Exception):
+    pass
 
 
 def check_dir(dir_path):
@@ -57,12 +63,15 @@ def url_parse(url):
         content = resp.content
 
         # 针对访问两次才能获得视频对象的情况
-        if len(content) < 5000:
+        if len(content) < 2000:
             code, r_url, r_headers, resp = parser.get_html(content.decode())
             content = resp.content
 
-            if len(content) > 5000:
+            if len(content) > 2000:
                 result = (r_url, content)
+
+            else:
+                raise ParserError("返回结果非视频文件")
 
         else:
             result = (r_url, content)
@@ -82,7 +91,8 @@ def url_parse(url):
         counter += 1
         bad_counter += 1
 
-    sleep(cfg.parser_delay)
+    if not result:
+        print("result: ", result)
     return result
 
 
@@ -90,58 +100,60 @@ def video_check(item):
     """
         检验视频对象是否满足保存要求
     """
-    global counter
-    global existed_counter
+    with lock:
+        global counter
+        global existed_counter
 
-    r_url, content = item
-    md5_v = parser.get_hash(content)
+        r_url, content = item
+        md5_v = parser.get_hash(content)
 
-    if db.has_url(r_url) or db.has_data(md5_v):
-        # 进度
-        percent = round(counter / cfg.download_number * 100, 1) if counter < cfg.download_number else 100.0
-        info = f"[ NO.{counter} | {percent}%, existed. ]"
-        print(info)
+        if db.has_url(r_url) or db.has_data(md5_v):
+            # 进度
+            percent = round(counter / cfg.download_number * 100, 1) if counter < cfg.download_number else 100.0
+            info = f"[ NO.{counter} | {percent}%, existed. ]"
+            print(info)
 
-        existed_counter += 1
-        counter += 1
-        return
+            existed_counter += 1
+            counter += 1
+            return
 
-    return r_url, md5_v, content
+        return r_url, md5_v, content
 
 
 def video_save(item):
     """
         保存视频对象为文件，并在数据库中添加相应的内容
     """
-    global counter
-    global next_id
+    with lock:
+        global counter
+        global next_id
 
-    r_url, md5_v, content = item
-    file_path = path_join(save_dir, f"{next_id}.mp4")
+        r_url, md5_v, content = item
+        file_path = path_join(save_dir, f"{next_id}.mp4")
 
-    parser.save(file_path, content)
+        parser.save(file_path, content)
 
-    # 保存数据信息
-    size = parser.get_size(content)
+        # 保存数据信息
+        size = parser.get_size(content)
 
-    data = {
-        "id": next_id,
-        "url": r_url,
-        "md5": md5_v,
-        "size": size
-    }
-    try:
-        db.insert(**data)
-        # 进度
-        percent = round(counter / cfg.download_number * 100, 1) if counter < cfg.download_number else 100.0
-        info = f"[ NO.{counter} | {percent}% | file: {next_id}.m4 | saved. ]"
-        print(info)
+        data = {
+            "id": next_id,
+            "url": r_url,
+            "md5": md5_v,
+            "size": size
+        }
+        try:
+            db.insert(**data)
+            # 进度
+            percent = round(counter / cfg.download_number * 100, 1) if counter < cfg.download_number else 100.0
+            info = f"[ NO.{counter} | {percent}% | file: {next_id}.m4 | saved. ]"
+            print(info)
 
-    except Exception as save_err:
-        log.error(f"NO.{counter} | url: {r_url} | err: {save_err}")
+        except Exception as save_err:
+            log.error(f"NO.{counter} | url: {r_url} | err: {save_err}")
 
-    next_id += 1
-    counter += 1
+        next_id += 1
+        counter += 1
 
 
 def main():
@@ -237,7 +249,7 @@ def demo2():
 
     log.info("Downloader: start")
     queue_size = cfg.queue_size
-    url_queue = CloseableQueue(queue_size)
+    url_queue = CloseableQueue()
     video_obj_queue = CloseableQueue(queue_size)
     video_save_queue = CloseableQueue(queue_size)
     done_queue = CloseableQueue(queue_size)
@@ -273,6 +285,15 @@ def demo2():
     log.info(report)
 
 
+def demo3():
+    name = demo3.__name__
+    print(name)
+    print(type(name))
+
+    test_queue = CloseableQueue()
+
+
 if __name__ == '__main__':
     # main()
-    demo2()
+    demo2()  # 用于解析从文件中读取的url
+    # demo3()
