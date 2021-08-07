@@ -61,45 +61,45 @@ def url_parse(url):
         解析给定链接，返回视频二进制对象
     """
     global counter
-    global existed_counter
     global bad_counter
 
-    with lock:
-        result = False
-        r_url = None
-        try:
-            code, r_url, r_headers, resp = parser.get_html(url)
+    result = False
+    r_url = None
+    try:
+        code, r_url, r_headers, resp = parser.get_html(url)
+        content = resp.content
+
+        # 针对访问两次才能获得视频对象的情况
+        if b'<?xml' in content:
+            code, r_url, r_headers, resp = parser.get_html(content.decode())
             content = resp.content
 
-            # 针对访问两次才能获得视频对象的情况
-            if b'<?xml' in content:
-                code, r_url, r_headers, resp = parser.get_html(content.decode())
-                content = resp.content
-
-                if b'<?xml' not in content and len(content) > 500:
-                    result = (r_url, content)
-
-                else:
-                    raise ParserError("返回结果非视频文件")
-
-            else:
+            if b'<?xml' not in content and len(content) > 500:
                 result = (r_url, content)
 
-        except Exception:
-            # 这里没有将error记录到日志中，因为错误的类型和内容已非常熟悉，可以忽略，多整体影响不大
-            log.error(f"Bad | URL: [{url}]\n R_URL: {r_url}")
+            else:
+                raise ParserError("返回结果非视频文件")
 
-            # 进度
-            percent = round(counter / cfg.download_number * 100, 1) if counter < cfg.download_number else 100.0
-            info = f" NO.{counter} | {percent}%, bad. "
-            log.info(info)
+        else:
+            result = (r_url, content)
 
-            # 因为parser出错，未传递任何数据给下游队列，所以，该url的处理在本函数内结束
-            # 所以，出错的时候才 counter + 1
+    except Exception:
+        # 这里没有将error记录到日志中，因为错误的类型和内容已非常熟悉，可以忽略，多整体影响不大
+        log.error(f"Bad | URL: [{url}]\n R_URL: {r_url}")
+
+        # 进度
+        percent = round(counter / cfg.download_number * 100, 1) if counter < cfg.download_number else 100.0
+        info = f" NO.{counter} | {percent}%, bad. "
+        log.info(info)
+
+        # 因为parser出错，未传递任何数据给下游队列，所以，该url的处理在本函数内结束
+        # 所以，出错的时候才 counter + 1
+
+        with lock:
             counter += 1
             bad_counter += 1
 
-        return result
+    return result
 
 
 def video_check(item):
@@ -140,27 +140,27 @@ def video_save(item):
     global g_urls
     global g_md5
 
+    r_url, md5_v, content = item
+    file_path = path_join(save_dir, f"{next_id}.mp4")
+
+    # 保存文件
+    parser.save(file_path, content)
+
+    # 保存数据信息
+    size = parser.get_size(file_path)
+
+    # 如果大小小于0.5MB，删掉，很有可能是残次视频
+    if size < 0.5:
+        remove(file_path)
+
+    data = {
+        "id": next_id,
+        "url": r_url,
+        "md5": md5_v,
+        "size": size
+    }
+
     with lock:
-        r_url, md5_v, content = item
-        file_path = path_join(save_dir, f"{next_id}.mp4")
-
-        # 保存文件
-        parser.save(file_path, content)
-
-        # 保存数据信息
-        size = parser.get_size(file_path)
-
-        # 如果大小小于0.5MB，删掉，很有可能是残次视频
-        if size < 0.5:
-            remove(file_path)
-
-        data = {
-            "id": next_id,
-            "url": r_url,
-            "md5": md5_v,
-            "size": size
-        }
-
         # 将新的url 或者 md5添加到全局变量中
         g_urls.add(r_url)
         g_md5.add(md5_v)

@@ -68,8 +68,8 @@ class BaseConfig:
     queue_size = 200
 
     # 是否显示queue长度相关信息，便于调试
-    # queue_size_display = True
-    queue_size_display = False
+    queue_size_display = True
+    # queue_size_display = False
 
     # 下载视频的个数，由于可能在不同网站下载到相同的视频，又由于所下载的视频可能之前已经下载过，所以，实际保存的视频数 ≤ 下载的视频个数
     # tips: 每一个的视频下载是随机从urls中的一个去下载

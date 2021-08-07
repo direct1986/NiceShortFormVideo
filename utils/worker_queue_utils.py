@@ -50,6 +50,7 @@ class StoppableWorker(Thread):
         self.func = func
         self.in_queue = in_queue
         self.out_queue = out_queue
+        self.debug_display = cfg.queue_size_display
 
     def judge_queue_name(self):
         func_name = self.func.__name__
@@ -74,6 +75,9 @@ class StoppableWorker(Thread):
         func_name, name1, name2 = self.judge_queue_name() if cfg.queue_size_display else ('', '', '')
 
         for item in self.in_queue:
+            if self.debug_display:
+                print(f"func: {func_name}, running")
+
             result = self.func(item)
 
             # 当有内容返回的时候，才放到下一个队列
@@ -81,8 +85,8 @@ class StoppableWorker(Thread):
             if result:
                 self.out_queue.put(result)
 
-            if cfg.queue_size_display:
-                info = f"{func_name} | {name1}: {self.in_queue.qsize()} | {name2}: {self.out_queue.qsize()}"
+            if self.debug_display:
+                info = f"func: {func_name} | {name1}: {self.in_queue.qsize()} | {name2}: {self.out_queue.qsize()}, done."
                 print(info)
 
 
