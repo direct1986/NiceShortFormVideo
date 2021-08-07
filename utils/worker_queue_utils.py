@@ -36,7 +36,6 @@ class CloseableQueue(Queue):
 
                 yield item
 
-            # TODO: try... finally的特性已了解，但这里为什么要这么用暂时还不清楚
             finally:
                 self.task_done()
 
@@ -77,7 +76,8 @@ class StoppableWorker(Thread):
         for item in self.in_queue:
             result = self.func(item)
 
-            # 当正确返回的时候，才放到下一个
+            # 当有内容返回的时候，才放到下一个队列
+            # 这里主要是处理done_queue, 不向其中添加任何内容，节省空间
             if result:
                 self.out_queue.put(result)
 

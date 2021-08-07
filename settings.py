@@ -60,7 +60,7 @@ class BaseConfig:
     ]
 
     # # 线程相关设置
-    parser_worker = 20  # 解析线程数
+    parser_worker = 30  # 解析线程数
     check_worker = 20  # 验证线程数
     save_worker = 20  # 下载线程数
 
