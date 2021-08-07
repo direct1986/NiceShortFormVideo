@@ -11,8 +11,8 @@
 from os import makedirs, remove
 from os.path import exists, join as path_join
 from random import choice, shuffle
-from time import time, sleep
 from threading import Lock
+from time import time
 
 from utils import (
     Parser, DataBase, log, create_db, CloseableQueue, start_threads, stop_thread, cfg)
@@ -27,6 +27,11 @@ except Exception as err:
 db = DataBase()
 parser = Parser()
 lock = Lock()
+
+# 设置两个全局变量，减少对数据库的1~2查询访问
+# 这个量比较小，如果量比较大的话，可以用redis做缓存
+g_urls = db.fetch_all_urls()
+g_md5 = db.fetch_all_hash()
 
 # 保存视频文件的目录
 save_dir = cfg.videos_dir
@@ -102,15 +107,17 @@ def video_check(item):
     """
     global counter
     global existed_counter
+    global g_urls
+    global g_md5
 
     with lock:
         r_url, content = item
         md5_v = parser.get_hash(content)
 
-        if db.has_url(r_url) or db.has_data(md5_v):
+        if r_url in g_urls or md5_v in g_md5:
             # 进度
             percent = round(counter / cfg.download_number * 100, 3) if counter < cfg.download_number else 100.0
-            info = f"[ NO.{counter} | {percent}%, existed. ]"
+            info = f"NO.{counter} | {percent}%, existed."
             log.info(info)
 
             existed_counter += 1
@@ -129,6 +136,8 @@ def video_save(item):
     """
     global counter
     global next_id
+    global g_urls
+    global g_md5
 
     with lock:
         r_url, md5_v, content = item
@@ -140,6 +149,7 @@ def video_save(item):
         # 保存数据信息
         size = parser.get_size(file_path)
 
+        # 如果大小小于0.5MB，删掉，很有可能是残次视频
         if size < 0.5:
             remove(file_path)
 
@@ -149,6 +159,11 @@ def video_save(item):
             "md5": md5_v,
             "size": size
         }
+
+        # 将新的url 或者 md5添加到全局变量中
+        g_urls.add(r_url)
+        g_md5.add(md5_v)
+
         try:
             db.insert(**data)
             # 进度
@@ -182,10 +197,11 @@ def main():
 
     log.info("Downloader: start")
 
-    url_queue = CloseableQueue()
-    video_obj_queue = CloseableQueue()
-    video_save_queue = CloseableQueue()
-    done_queue = CloseableQueue()
+    queue_size = cfg.queue_size
+    url_queue = CloseableQueue(queue_size)
+    video_obj_queue = CloseableQueue(queue_size)
+    video_save_queue = CloseableQueue(queue_size)
+    done_queue = CloseableQueue(queue_size)
 
     url_parse_threads = start_threads(cfg.parser_worker, url_parse, url_queue, video_obj_queue)
     video_check_threads = start_threads(cfg.check_worker, video_check, video_obj_queue, video_save_queue)

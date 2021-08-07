@@ -91,7 +91,7 @@ class DataBase:
         return True if row else False
 
     @session_manager
-    def fetch_all_hash_value(self):
+    def fetch_all_hash(self):
         rows = self.session.query(self.tb_data).with_entities(self.tb_data.md5).all()
 
         return {x[0] for x in rows} or rows
