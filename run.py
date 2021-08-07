@@ -85,8 +85,9 @@ def url_parse(url):
             else:
                 result = (r_url, content)
 
-        except Exception as parser_err:
-            log.error(f"Bad | URL: [{url}]\n R_URL: {r_url} |error: {parser_err}")
+        except Exception:
+            # 这里没有将error记录到日志中，因为错误的类型和内容已非常熟悉，可以忽略，多整体影响不大
+            log.error(f"Bad | URL: [{url}]\n R_URL: {r_url}")
 
             # 进度
             percent = round(counter / cfg.download_number * 100, 1) if counter < cfg.download_number else 100.0
