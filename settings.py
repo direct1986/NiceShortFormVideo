@@ -44,13 +44,13 @@ class BaseConfig:
 
     # 下载的视频地址
     urls = [
-        # "https://sp.nico.run/video.php",
+        "https://sp.nico.run/video.php",
         "http://www.kuaidoushe.com/video.php",
         "https://tvv.tw/xjj/kuaishou/video.php",
         "https://xjj.349457.xyz/video.php",
-        # "http://wmsp.cc/video.php",  # 这个反爬虫，设置(2, 4)秒的随机sleep可解除
-        # "http://dou.plus/get/get1.php",  # 这个也只能下载一些
-        # "http://dou.plus/get/get2.php",  # 这个也只能下载一些
+        "http://wmsp.cc/video.php",  # 这个反爬虫，设置(2, 4)秒的随机sleep可解除
+        "http://dou.plus/get/get1.php",  # 这个也只能下载一些
+        "http://dou.plus/get/get2.php",  # 这个也只能下载一些
     ]
 
     # 备选的下载地址，这些下载地址或多或少有一些限制
@@ -73,7 +73,7 @@ class BaseConfig:
 
     # 下载视频的个数，由于可能在不同网站下载到相同的视频，又由于所下载的视频可能之前已经下载过，所以，实际保存的视频数 ≤ 下载的视频个数
     # tips: 每一个的视频下载是随机从urls中的一个去下载
-    download_number = 10000
+    download_number = 5000
 
     # 每个链接的响应超时时间, 单位，秒
     time_out = 30
