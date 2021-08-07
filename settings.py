@@ -60,9 +60,9 @@ class BaseConfig:
     ]
 
     # # 线程相关设置
-    parser_worker = 30  # 解析线程数
-    check_worker = 20  # 验证线程数
-    save_worker = 20  # 下载线程数
+    parser_worker = 50  # 解析线程数
+    check_worker = 5  # 验证线程数
+    save_worker = 10  # 下载线程数
 
     # 队列长度， 防止内存溢出
     queue_size = 200

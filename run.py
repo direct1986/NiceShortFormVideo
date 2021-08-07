@@ -118,8 +118,10 @@ def video_check(item):
         if r_url in g_urls or md5_v in g_md5:
             # 进度
             percent = round(counter / cfg.download_number * 100, 3) if counter < cfg.download_number else 100.0
-            info = f"NO.{counter} | {percent}%, existed."
-            log.info(info)
+            info = f"[ NO.{counter} | {percent}%, existed. ]"
+
+            # 这里的existed信息不是重要信息，只是作为进度，不用保存到log
+            print(info)
 
             existed_counter += 1
 
@@ -235,12 +237,12 @@ def main():
     log.info(report)
 
 
-def demo2():
+def download_with_url_from_file():
     """
         从文件中添加 url
     """
     # 去掉文件中已经下载过的url
-    demo3()
+    diff_urls_in_file()
 
     # 开始时间
     start_time = time()
@@ -287,7 +289,7 @@ def demo2():
     log.info(report)
 
 
-def demo3():
+def diff_urls_in_file():
     """
         去掉文件中已经下载过的url
     """
@@ -318,5 +320,5 @@ if __name__ == '__main__':
     # demo_test()
     # main()
     # demo()
-    demo2()  # 用于解析从文件中读取的url
-    # demo3()
+    download_with_url_from_file()  # 用于解析从文件中读取的url
+    # diff_urls_in_file()
