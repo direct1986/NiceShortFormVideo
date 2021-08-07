@@ -9,9 +9,7 @@
 ------------------------------------------
 """
 from hashlib import md5
-from os import stat
 from os.path import getsize as os_getsize
-from random import uniform
 from time import time
 
 import requests
@@ -22,6 +20,8 @@ class Parser:
     """
         一些下载视频所用的通用方法
     """
+    from settings import cfg
+    time_out = cfg.time_out
 
     @staticmethod
     def gen_url(base_url):
@@ -29,7 +29,7 @@ class Parser:
         return f"{base_url}?_t=0.{t}"
 
     def get_html(self, url: str) -> tuple:
-        response = requests.request("GET", url, headers=self.new_headers)
+        response = requests.request("GET", url, headers=self.new_headers, timeout=self.time_out)
         code = response.status_code
         url = response.url
         headers = response.headers

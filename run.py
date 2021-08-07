@@ -318,7 +318,8 @@ def demo_test():
 
 if __name__ == '__main__':
     # demo_test()
-    # main()
     # demo()
-    download_with_url_from_file()  # 用于解析从文件中读取的url
+    # download_with_url_from_file()  # 用于解析从文件中读取的url
     # diff_urls_in_file()
+    main()
+d
