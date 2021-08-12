@@ -67,7 +67,6 @@ class StoppableWorker(Thread):
 
         elif func_name == 'video_save':
             q_name1 = 'video_save_queue'
-            q_name2 = 'done_queue'
 
         return func_name, q_name1, q_name2
 
