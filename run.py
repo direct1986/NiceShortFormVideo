@@ -204,11 +204,10 @@ def main():
     url_queue = CloseableQueue(queue_size)
     video_obj_queue = CloseableQueue(queue_size)
     video_save_queue = CloseableQueue(queue_size)
-    done_queue = CloseableQueue(queue_size)
 
     url_parse_threads = start_threads(cfg.parser_worker, url_parse, url_queue, video_obj_queue)
     video_check_threads = start_threads(cfg.check_worker, video_check, video_obj_queue, video_save_queue)
-    video_save_threads = start_threads(cfg.download_number, video_save, video_save_queue, done_queue)
+    video_save_threads = start_threads(cfg.download_number, video_save, video_save_queue)
 
     # 下载用的基础链接
     urls = cfg.urls
@@ -256,11 +255,10 @@ def download_with_url_from_file():
     url_queue = CloseableQueue(queue_size)
     video_obj_queue = CloseableQueue(queue_size)
     video_save_queue = CloseableQueue(queue_size)
-    done_queue = CloseableQueue(queue_size)
 
     url_parse_threads = start_threads(cfg.parser_worker, url_parse, url_queue, video_obj_queue)
     video_check_threads = start_threads(cfg.check_worker, video_check, video_obj_queue, video_save_queue)
-    video_save_threads = start_threads(cfg.download_number, video_save, video_save_queue, done_queue)
+    video_save_threads = start_threads(cfg.download_number, video_save, video_save_queue)
 
     # 向下载队列中填入生成的下载链接
     file_path = "data/urls.txt"

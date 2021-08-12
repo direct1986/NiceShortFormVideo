@@ -45,7 +45,7 @@ class StoppableWorker(Thread):
         比较高级的 Worker
     """
 
-    def __init__(self, func, in_queue, out_queue):
+    def __init__(self, func, in_queue, out_queue=None):
         super().__init__()
         self.func = func
         self.in_queue = in_queue
@@ -82,7 +82,7 @@ class StoppableWorker(Thread):
 
             # 当有内容返回的时候，才放到下一个队列
             # 这里主要是处理done_queue, 不向其中添加任何内容，节省空间
-            if result:
+            if self.out_queue and result:
                 self.out_queue.put(result)
 
             if self.debug_display:
